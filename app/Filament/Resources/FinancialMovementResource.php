@@ -6,10 +6,13 @@ use App\Enums\FinancialMovementFlowType;
 use App\Enums\FinancialMovementStatus;
 use App\Filament\Resources\FinancialMovementResource\Pages;
 use App\Filament\Resources\FinancialMovementResource\RelationManagers;
+use App\Models\Company;
 use App\Models\FinancialMovement;
 use App\Models\FinancialMovementCategory;
+use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -25,7 +28,7 @@ class FinancialMovementResource extends Resource
 {
     protected static ?string $model = FinancialMovement::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
     protected static ?string $modelLabel = 'Movimentação Financeira';
 
@@ -47,6 +50,66 @@ class FinancialMovementResource extends Resource
                     ->columnSpanFull()
                     ->grouped()
                     ->required(),
+                Forms\Components\Select::make('financial_movement_category_id')
+                    ->label('Categoria')
+                    ->columnSpanFull()
+                    ->relationship(
+                        name: 'financialMovementCategory',
+                        titleAttribute: 'name',
+                        modifyQueryUsing: fn(Builder $query, Get $get) => $query->orderBy('name')
+                            ->where('flow_type', $get('flow_type')),
+                    )
+                    ->searchable(['name'])
+                    ->preload()
+                    ->getOptionLabelFromRecordUsing(fn(FinancialMovementCategory $record) => "{$record->name} | {$record->flow_type->getLabel()}")
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('name')
+                            ->required(),
+                        Forms\Components\Select::make('flow_type')
+                            ->label('Entrada/Saída')
+                            ->options(FinancialMovementFlowType::class)
+                            ->required(),
+                    ]),
+                Forms\Components\Fieldset::make('Atribuir Saída para...')
+                    ->schema([
+                        Forms\Components\Select::make('company_id')
+                            ->label(label: 'Instituição')
+                            ->columnSpanFull()
+                            ->relationship(
+                                name: 'company',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query, Get $get) => $query->orderBy('name'),
+                            )
+                            ->searchable(['name', 'cnpj'])
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(
+                                fn(Company $record) => "{$record->name} | {$record->cnpj}"
+                            ),
+                        Forms\Components\Select::make('people')
+                            ->label('Pessoas')
+                            ->columnSpanFull()
+                            ->multiple()
+                            ->preload()
+                            ->relationship(
+                                name: 'people',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn(Builder $query, Get $get) => $query->orderBy('name')
+                                    ->where(
+                                        'company_id',
+                                        $get('company_id'),
+                                    ),
+                            )
+                            ->searchable(['name', 'cpf'])
+                            ->getOptionLabelFromRecordUsing(
+                                fn(Person $record) => "{$record->name} | {$record->cpf}"
+                            )
+                            ->pivotData(function ($state, Get $get): array {
+                                return [
+                                    'value' => -abs($get('value') / count($state)),
+                                ];
+                            }),
+                    ])
+                    ->visible(fn(Get $get) => $get('flow_type') === FinancialMovementFlowType::OUT->value),
                 Forms\Components\Textarea::make('description')
                     ->label('Descrição')
                     ->columnSpanFull()
@@ -58,6 +121,7 @@ class FinancialMovementResource extends Resource
                     ->suffixIconColor(fn(Get $get) => $get('flow_type') === 'in' ? 'success' : 'danger')
                     ->columnSpanFull()
                     ->numeric()
+                    ->live()
                     ->required(),
                 Forms\Components\Select::make('status')
                     ->disabled(fn(Get $get) => !$get('flow_type'))
@@ -65,11 +129,11 @@ class FinancialMovementResource extends Resource
                     ->options(FinancialMovementStatus::class)
                     ->default(FinancialMovementStatus::PAID)
                     ->live()
-                    ->afterStateUpdated(fn($state, callable $set) => $set('payment_date', null))
+                    ->afterStateUpdated(fn(callable $set) => $set('payment_date', null))
                     ->required(),
                 Forms\Components\DatePicker::make('payment_date')
                     ->label('Data de Recebimento/Pagamento')
-                    ->disabled(fn(Get $get) => $get('status') !== FinancialMovementStatus::PAID)
+                    ->disabled(fn(Get $get) => $get('status') !== FinancialMovementStatus::PAID->value)
                     ->default(fn() => now()),
                 Forms\Components\DatePicker::make('due_date')
                     ->label('Data de Vencimento'),
@@ -106,20 +170,33 @@ class FinancialMovementResource extends Resource
                             ->money('BRL', locale: 'pt-BR')
                             ->query(fn($query) => $query->where('status', FinancialMovementStatus::PENDING)),
                     ]),
+                Tables\Columns\TextColumn::make('financialMovementCategory.name')
+                    ->label('Categoria')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Instituição')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('payment_date')
                     ->label('Data Pagamento')
                     ->date()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('due_date')
                     ->label('Data de Vencimento')
                     ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('description')
-                    ->label('Descrição')
+                    ->sortable()
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('status')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('description')
+                    ->label('Descrição')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime()
@@ -157,7 +234,7 @@ class FinancialMovementResource extends Resource
         return [
             'index' => Pages\ListFinancialMovements::route('/'),
             // 'create' => Pages\CreateFinancialMovement::route('/create'),
-            'edit' => Pages\EditFinancialMovement::route('/{record}/edit'),
+            // 'edit' => Pages\EditFinancialMovement::route('/{record}/edit'),
         ];
     }
 }

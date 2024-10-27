@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CompanyResource\Pages;
 use App\Filament\Resources\CompanyResource\RelationManagers;
+use App\Filament\Resources\CompanyResource\RelationManagers\EventsRelationManager;
 use App\Filament\Resources\CompanyResource\RelationManagers\PeopleRelationManager;
 use App\Filament\Resources\CompanyResource\RelationManagers\PresidentRelationManager;
 use App\Models\Company;
@@ -64,7 +65,8 @@ class CompanyResource extends Resource
                                     ->label('Telefone')
                                     ->tel()
                                     ->mask('(99) 99999-9999')
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->required(),
                             ]),
                         Fieldset::make('Endereço')
                             ->schema([
@@ -194,23 +196,6 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Telefone')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('address')
-                    ->label('Endereço')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('number')
-                    ->label('Número')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('cep')
-
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('neighborhood')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('city')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('state')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('church')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -237,6 +222,7 @@ class CompanyResource extends Resource
     {
         return [
             PeopleRelationManager::class,
+            EventsRelationManager::class,
         ];
     }
 

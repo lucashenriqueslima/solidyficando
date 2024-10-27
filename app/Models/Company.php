@@ -14,6 +14,11 @@ class Company extends Model
     //guarded
     protected $guarded = [];
 
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
     public function people(): HasMany
     {
         return $this->hasMany(Person::class);

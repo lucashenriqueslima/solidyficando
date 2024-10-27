@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('financial_movements', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('financial_movement_category_id')->nullable()->constrained();
+            $table->foreignId('company_id')->nullable()->constrained()->cascadeOnDelete();
             $table->decimal('value', 10, 2);
             $table->date('payment_date')->nullable();
             $table->date('due_date')->nullable();
@@ -29,9 +31,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('financial_movements', function (Blueprint $table) {
-            $table->dropForeign(['financial_movement_type_id']);
+            $table->dropForeign(['financial_movement_category_id']);
             $table->dropForeign(['company_id']);
-            $table->dropForeign(['person_id']);
         });
         Schema::dropIfExists('financial_movements');
     }

@@ -6,23 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
-
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('presidents', function (Blueprint $table) {
+        Schema::create('events', function (Blueprint $table) {
             $table->id();
             $table->foreignId('company_id')->constrained()->onDelete('cascade');
             $table->string('name');
-            $table->string('cpf');
-            $table->string('email');
-            $table->string('phone');
-            $table->string('address');
-            $table->string('number');
-            $table->string('cep');
-            $table->string('neighborhood');
-            $table->string('city');
-            $table->string('state');
+            $table->json('attachments')->nullable();
             $table->timestamps();
         });
     }
@@ -32,9 +25,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('presidents', function (Blueprint $table) {
+        Schema::dropIfExists('events');
+        Schema::table('financial_movements', function (Blueprint $table) {
             $table->dropForeign(['company_id']);
         });
-        Schema::dropIfExists('presidents');
     }
 };

@@ -1,42 +1,46 @@
 <?php
 
-namespace App\Filament\Resources\CompanyResource\RelationManagers;
+namespace App\Filament\Resources;
 
-use App\Enums\PersonType;
 use App\Enums\EducationLevel;
 use App\Enums\Housing;
+use App\Filament\Resources\PersonResource\Pages;
+use App\Filament\Resources\PersonResource\RelationManagers;
+use App\Filament\Resources\PersonResource\RelationManagers\FinancialMovementsRelationManager;
 use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class PeopleRelationManager extends RelationManager
+class PersonResource extends Resource
 {
-    protected static string $relationship = 'people';
+    protected static ?string $model = Person::class;
 
-    protected static ?string $title = 'Pessoas';
-    protected static ?string $modelLabel = 'Pessoa';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
+    protected static ?string $modelLabel = 'Pessoas';
 
-    public function form(Form $form): Form
+    public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
-                    ->required(),
+                    ->required()
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('cpf')
                     ->label('CPF')
-                    ->mask('999.999.999-99')
-                    ->required(),
+                    ->required()
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('phone')
                     ->label('Telefone')
-                    ->mask('(99) 99999-9999')
-                    ->required(),
+                    ->tel()
+                    ->required()
+                    ->maxLength(255),
                 Forms\Components\DatePicker::make('birthday')
                     ->label('Data de Nascimento')
                     ->date()
@@ -82,17 +86,26 @@ class PeopleRelationManager extends RelationManager
                 Forms\Components\TextInput::make('state')
                     ->label('Estado')
                     ->required(),
-
             ]);
     }
 
-    public function table(Table $table): Table
+    public static function table(Table $table): Table
     {
         return $table
-            ->recordTitleAttribute('Pessoa')
             ->columns([
+                Tables\Columns\TextColumn::make('company.name')
+                    ->label('Instituição')
+                    ->numeric()
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('name')
-                    ->label('Nome'),
+                    ->label('Nome')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('cpf')
+                    ->label('CPF')
+                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('financialMovements_sum_value')
                     ->label('Valor Gasto')
                     ->color('danger')
@@ -105,22 +118,44 @@ class PeopleRelationManager extends RelationManager
                             ->pluck('total')
                             ->first() ?? 0;
                     }),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Criação')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Última Atualização')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make(),
-            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            FinancialMovementsRelationManager::class,
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListPeople::route('/'),
+            'create' => Pages\CreatePerson::route('/create'),
+            'edit' => Pages\EditPerson::route('/{record}/edit'),
+        ];
     }
 
     public static function buscarEnderecoPorCep($cep, callable $set)

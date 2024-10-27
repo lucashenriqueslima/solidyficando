@@ -6,6 +6,7 @@ use App\Enums\Housing;
 use App\Enums\EducationLevel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Person extends Model
 {
@@ -25,5 +26,12 @@ class Person extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function financialMovements(): BelongsToMany
+    {
+        return $this->belongsToMany(FinancialMovement::class, 'financial_movement_person')
+            ->withPivot('value')
+            ->withTimestamps();
     }
 }
