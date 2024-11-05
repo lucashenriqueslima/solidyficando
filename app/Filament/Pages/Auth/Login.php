@@ -12,6 +12,7 @@ use Filament\Forms\Form;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
@@ -44,14 +45,7 @@ class Login extends \Filament\Pages\Auth\Login
 
         $user = Filament::auth()->user();
 
-        if (
-            ($user instanceof FilamentUser) &&
-            (! $user->canAccessPanel(Filament::getCurrentPanel()))
-        ) {
-            Filament::auth()->logout();
-
-            $this->throwFailureValidationException();
-        }
+        Log::info("User {$user->id} has logged in.");
 
         session()->regenerate();
 
