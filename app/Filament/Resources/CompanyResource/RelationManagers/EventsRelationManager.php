@@ -23,11 +23,12 @@ class EventsRelationManager extends RelationManager
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                    ->label('Nome')
                     ->columnSpanFull()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('attachments')
-                    ->label('Arquivos da Vistoria')
+                    ->label('Arquivos do evento')
                     ->columnSpanFull()
                     ->placeholder('Arquivos do evento...')
                     ->multiple()

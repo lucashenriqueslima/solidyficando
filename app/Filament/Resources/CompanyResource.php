@@ -237,7 +237,9 @@ class CompanyResource extends Resource
 
     public static function buscarEnderecoPorCep($cep, callable $set)
     {
-        // Remove caracteres indesejados do CEP
+        if (!$cep) {
+            return;
+        }
         $cep = preg_replace('/[^0-9]/', '', $cep);
 
         if (strlen($cep) === 8) { // Verifica se o CEP é válido

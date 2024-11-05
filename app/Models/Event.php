@@ -13,10 +13,13 @@ class Event extends Model
 
     protected $guarded = [];
 
+
+
     protected function casts(): array
     {
         return [
             'attachments' => 'array',
+            'date' => 'datetime',
         ];
     }
 

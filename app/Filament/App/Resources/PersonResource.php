@@ -1,12 +1,11 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\App\Resources;
 
 use App\Enums\EducationLevel;
 use App\Enums\Housing;
-use App\Filament\Resources\PersonResource\Pages;
-use App\Filament\Resources\PersonResource\RelationManagers;
-use App\Filament\Resources\PersonResource\RelationManagers\FinancialMovementsRelationManager;
+use App\Filament\App\Resources\PersonResource\Pages;
+use App\Filament\App\Resources\PersonResource\RelationManagers;
 use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -15,6 +14,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use Leandrocfe\FilamentPtbrFormFields\Money;
 
 class PersonResource extends Resource
 {
@@ -23,6 +24,11 @@ class PersonResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     protected static ?string $modelLabel = 'Benefiaciários';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('company_id', Auth::user()->id);
+    }
 
     public static function form(Form $form): Form
     {
@@ -39,17 +45,15 @@ class PersonResource extends Resource
                 Forms\Components\TextInput::make('phone')
                     ->label('Telefone')
                     ->tel()
+                    ->mask('(99) 99999-9999')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\DatePicker::make('birthday')
                     ->label('Data de Nascimento')
                     ->date()
                     ->required(),
-                Forms\Components\TextInput::make('family_income')
-                    ->label('Renda Familiar')
-                    ->prefix('R$')
-                    ->required()
-                    ->numeric()
+                Money::make('family_income')
+                    ->label('Contribuição Mensal')
                     ->required(),
                 Forms\Components\Select::make('education')
                     ->label('Escolaridade')
@@ -86,6 +90,7 @@ class PersonResource extends Resource
                 Forms\Components\TextInput::make('state')
                     ->label('Estado')
                     ->required(),
+
             ]);
     }
 
@@ -93,11 +98,7 @@ class PersonResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('company.name')
-                    ->label('Instituição')
-                    ->numeric()
-                    ->searchable()
-                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome')
                     ->searchable()
@@ -105,24 +106,14 @@ class PersonResource extends Resource
                 Tables\Columns\TextColumn::make('cpf')
                     ->label('CPF')
                     ->searchable(),
-
-                Tables\Columns\TextColumn::make('financialMovements_sum_value')
-                    ->label('Valor Gasto')
-                    ->color('danger')
-                    ->money('BRL', locale: 'pt-BR')
-                    ->sortable()
-                    ->searchable()
-                    ->getStateUsing(function ($record) {
-                        return $record->financialMovements()
-                            ->selectRaw('SUM(financial_movement_person.value) as total')
-                            ->pluck('total')
-                            ->first() ?? 0;
-                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criação')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('Telefone')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Última Atualização')
                     ->dateTime()
@@ -145,7 +136,7 @@ class PersonResource extends Resource
     public static function getRelations(): array
     {
         return [
-            FinancialMovementsRelationManager::class,
+            //
         ];
     }
 
