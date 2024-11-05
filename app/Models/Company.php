@@ -19,6 +19,12 @@ class Company extends Authenticatable implements FilamentUser
     {
         return true;
     }
+
+    public function canAccessFilament(): bool
+    {
+        return true;
+    }
+
     protected $guarded = [];
 
     public function events(): HasMany
