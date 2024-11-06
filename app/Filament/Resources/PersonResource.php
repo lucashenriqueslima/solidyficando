@@ -28,6 +28,10 @@ class PersonResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('company_id')
+                    ->label('Instituição')
+                    ->options(fn() => \App\Models\Company::pluck('name', 'id'))
+                    ->required(),
                 Forms\Components\TextInput::make('name')
                     ->label('Nome')
                     ->required()
@@ -106,18 +110,18 @@ class PersonResource extends Resource
                     ->label('CPF')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('financialMovements_sum_value')
-                    ->label('Valor Gasto')
-                    ->color('danger')
-                    ->money('BRL', locale: 'pt-BR')
-                    ->sortable()
-                    ->searchable()
-                    ->getStateUsing(function ($record) {
-                        return $record->financialMovements()
-                            ->selectRaw('SUM(financial_movement_person.value) as total')
-                            ->pluck('total')
-                            ->first() ?? 0;
-                    }),
+                // Tables\Columns\TextColumn::make('financialMovements_sum_value')
+                //     ->label('Valor Gasto')
+                //     ->color('danger')
+                //     ->money('BRL', locale: 'pt-BR')
+                //     ->sortable()
+                //     ->searchable()
+                //     ->getStateUsing(function ($record) {
+                //         return $record->financialMovements()
+                //             ->selectRaw('SUM(financial_movement_person.value) as total')
+                //             ->pluck('total')
+                //             ->first() ?? 0;
+                //     }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criação')
                     ->dateTime()

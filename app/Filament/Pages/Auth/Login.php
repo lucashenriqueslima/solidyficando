@@ -2,13 +2,16 @@
 
 namespace App\Filament\Pages\Auth;
 
+use App\Enums\SignInAccountType;
 use App\Filament\Helpers\FillamentHelper;
 use App\Models\Company;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Component;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Support\Facades\Blade;
@@ -31,8 +34,6 @@ class Login extends \Filament\Pages\Auth\Login
         }
 
         $data = $this->form->getState();
-
-
 
         $company = $this->findCompanyByCredentials($this->getCredentialsFromFormData($data));
 
@@ -79,20 +80,32 @@ class Login extends \Filament\Pages\Auth\Login
             'form' => $this->form(
                 $this->makeForm()
                     ->schema([
-                        $this->getEmailFormComponent(),
-                        $this->getPasswordFormComponent(),
-                        $this->getRememberFormComponent(),
+                        $this->getSignInAccountTypeFormComponent(),
+                        $this->getEmailFormComponent()->hidden(fn(Get $get): bool => !$get('signInAccountType')),
+                        $this->getPasswordFormComponent()->hidden(fn(Get $get): bool => !$get('signInAccountType')),
+                        $this->getRememberFormComponent()->hidden(fn(Get $get): bool => !$get('signInAccountType')),
                     ])
                     ->statePath('data'),
             ),
         ];
     }
 
+    public function getSignInAccountTypeFormComponent(): Component
+    {
+        return Select::make('signInAccountType')
+            ->label('Entrar por CNPJ ou CPF')
+            ->options(SignInAccountType::class)
+            ->native(false)
+            ->live()
+            ->required()
+            ->extraInputAttributes(['tabindex' => 0]);
+    }
+
     protected function getEmailFormComponent(): Component
     {
         return TextInput::make('cnpj')
-            ->label('CNPJ da Instituição')
-            ->mask('99.999.999/9999-99')
+            ->label(fn(Get $get): string => $get('signInAccountType') === SignInAccountType::CPF->value ? 'CPF do Responsável' : 'CNPJ da Instituição')
+            ->mask(fn(Get $get): string => $get('signInAccountType') === SignInAccountType::CPF->value ? '999.999.999-99' : '99.999.999/9999-99')
             ->required()
             ->autocomplete()
             ->autofocus()

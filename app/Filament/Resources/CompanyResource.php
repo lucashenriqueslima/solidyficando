@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\SignInAccountType;
 use App\Filament\Resources\CompanyResource\Pages;
 use App\Filament\Resources\CompanyResource\RelationManagers;
 use App\Filament\Resources\CompanyResource\RelationManagers\EventsRelationManager;
@@ -19,6 +20,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Get;
 
 class CompanyResource extends Resource
 {
@@ -39,14 +41,22 @@ class CompanyResource extends Resource
                     ->schema([
                         Fieldset::make('Identificação')
                             ->schema([
+                                Forms\Components\Select::make('acccount_type')
+                                    ->label('Cadastrar por CNPJ ou CPF')
+                                    ->options(SignInAccountType::class)
+                                    ->native(false)
+                                    ->live()
+                                    ->columnSpanFull()
+                                    ->dehydrated(false)
+                                    ->required(),
                                 Forms\Components\TextInput::make('name')
                                     ->label('Nome')
                                     ->columnSpanFull()
                                     ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('cnpj')
-                                    ->label('CNPJ')
-                                    ->mask('99.999.999/9999-99')
+                                    ->label(fn(Get $get) => $get('acccount_type') === SignInAccountType::CPF->value ? 'CPF' : 'CNPJ')
+                                    ->mask(fn(Get $get) => $get('acccount_type') === SignInAccountType::CPF->value ? '999.999.999-99' : '99.999.999/9999-99')
                                     ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('cmas')
