@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('donations_people', function (Blueprint $table) {
             $table->id();
             $table->foreignId('donation_id')->constrained()->onDelete('cascade');
-            $table->foreignId('people_id')->constrained()->onDelete('cascade');
+            $table->foreignId('person_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

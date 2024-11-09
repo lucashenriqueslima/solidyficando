@@ -13,6 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Leandrocfe\FilamentPtbrFormFields\Money;
 
 class PeopleRelationManager extends RelationManager
 {
@@ -41,11 +42,8 @@ class PeopleRelationManager extends RelationManager
                     ->label('Data de Nascimento')
                     ->date()
                     ->required(),
-                Forms\Components\TextInput::make('family_income')
+                Money::make('family_income')
                     ->label('Renda Familiar')
-                    ->prefix('R$')
-                    ->required()
-                    ->numeric()
                     ->required(),
                 Forms\Components\Select::make('education')
                     ->label('Escolaridade')
