@@ -11,6 +11,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -23,7 +24,7 @@ class PersonResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $modelLabel = 'Benefiaciários';
+    protected static ?string $modelLabel = 'Assistidos';
 
     public static function getEloquentQuery(): Builder
     {
@@ -41,6 +42,8 @@ class PersonResource extends Resource
                 Forms\Components\TextInput::make('cpf')
                     ->label('CPF')
                     ->required()
+                    ->mask('999.999.999-99')
+                    ->rule('cpf')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone')
                     ->label('Telefone')
@@ -53,7 +56,7 @@ class PersonResource extends Resource
                     ->date()
                     ->required(),
                 Money::make('family_income')
-                    ->label('Contribuição Mensal')
+                    ->label('Renda Mensal Familiar')
                     ->required(),
                 Forms\Components\Select::make('education')
                     ->label('Escolaridade')
@@ -90,6 +93,15 @@ class PersonResource extends Resource
                 Forms\Components\TextInput::make('state')
                     ->label('Estado')
                     ->required(),
+                Forms\Components\FileUpload::make('image_path')
+                    ->label('Foto de Perfil')
+                    ->columnSpanFull()
+                    ->visibility('public')
+                    ->maxSize(8 * 1024)
+                    ->directory('public/people')
+                    ->image()
+                    ->imageEditor()
+                    ->required(),
 
             ]);
     }
@@ -114,6 +126,9 @@ class PersonResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Telefone')
                     ->searchable(),
+                ImageColumn::make('image_path')
+                    ->label('Foto de Perfil')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Última Atualização')
                     ->dateTime()

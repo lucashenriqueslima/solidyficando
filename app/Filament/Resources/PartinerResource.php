@@ -33,6 +33,7 @@ class PartinerResource extends Resource
                 Forms\Components\TextInput::make('cpf')
                     ->label('CPF')
                     ->mask('999.999.999-99')
+                    ->rule('cpf')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone')

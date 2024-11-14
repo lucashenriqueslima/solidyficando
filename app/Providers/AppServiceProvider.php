@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Illuminate\Support\ServiceProvider;
+use LaravelLegends\PtBrValidator\Rules\Cpf;
+use App\Rules\CustomCpf;
 
 class AppServiceProvider extends ServiceProvider
 {

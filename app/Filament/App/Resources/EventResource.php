@@ -48,6 +48,8 @@ class EventResource extends Resource
                     ->visibility('public')
                     ->maxSize(5 * 1024)
                     ->directory('public/events')
+                    ->reorderable()
+                    ->downloadable()
                     ->required(),
             ]);
     }

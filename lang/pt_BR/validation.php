@@ -36,6 +36,8 @@ return [
     'confirmed'            => 'O campo :attribute de confirmação não confere.',
     'contains'             => 'O campo :attribute está faltando um valor obrigatório.',
     'current_password'     => 'A senha está incorreta.',
+    'cpf' => 'O campo CPF não é um CPF válido.',
+    'cnpj' => 'O campo CNPJ não é um CNPJ válido.',
     'date'                 => 'O campo :attribute não é uma data válida.',
     'date_equals'          => 'O campo :attribute deve ser uma data igual a :date.',
     'date_format'          => 'O campo :attribute não corresponde ao formato :format.',
@@ -235,7 +237,7 @@ return [
         'modality' => 'modalidade',
         'category' => 'categoria',
         'blood_type' => 'tipo sanguíneo',
-        'birth_date' => 'data de nascimento'
+        'birth_date' => 'data de nascimento',
     ],
 
 ];

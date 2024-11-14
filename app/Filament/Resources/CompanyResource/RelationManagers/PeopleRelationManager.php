@@ -32,8 +32,10 @@ class PeopleRelationManager extends RelationManager
                     ->required(),
                 Forms\Components\TextInput::make('cpf')
                     ->label('CPF')
+                    ->required()
                     ->mask('999.999.999-99')
-                    ->required(),
+                    ->rule('cpf')
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('phone')
                     ->label('Telefone')
                     ->mask('(99) 99999-9999')
@@ -43,7 +45,7 @@ class PeopleRelationManager extends RelationManager
                     ->date()
                     ->required(),
                 Money::make('family_income')
-                    ->label('Renda Familiar')
+                    ->label('Renda Mensal Familiar')
                     ->required(),
                 Forms\Components\Select::make('education')
                     ->label('Escolaridade')
@@ -80,6 +82,15 @@ class PeopleRelationManager extends RelationManager
                 Forms\Components\TextInput::make('state')
                     ->label('Estado')
                     ->required(),
+                Forms\Components\FileUpload::make('image_path')
+                    ->label('Foto de Perfil')
+                    ->columnSpanFull()
+                    ->visibility('public')
+                    ->maxSize(8 * 1024)
+                    ->directory('public/people')
+                    ->image()
+                    ->imageEditor()
+                    ->required(),
 
             ]);
     }
@@ -91,6 +102,13 @@ class PeopleRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nome'),
+                Tables\Columns\TextColumn::make('cpf')
+                    ->label('CPF'),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('Telefone'),
+                Tables\Columns\ImageColumn::make('image_path')
+                    ->label('Foto de Perfil')
+                    ->circular(),
                 Tables\Columns\TextColumn::make('financialMovements_sum_value')
                     ->label('Valor Gasto')
                     ->color('danger')

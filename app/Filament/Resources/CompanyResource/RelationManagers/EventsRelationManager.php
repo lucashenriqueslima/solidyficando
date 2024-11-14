@@ -33,7 +33,10 @@ class EventsRelationManager extends RelationManager
                     ->placeholder('Arquivos do evento...')
                     ->multiple()
                     ->visibility('public')
+                    ->maxSize(5 * 1024)
                     ->directory('public/events')
+                    ->reorderable()
+                    ->downloadable()
                     ->required(),
             ]);
     }

@@ -22,7 +22,7 @@ class PersonResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $modelLabel = 'Benefiaciários';
+    protected static ?string $modelLabel = 'Assistidos';
 
     public static function form(Form $form): Form
     {
@@ -39,6 +39,8 @@ class PersonResource extends Resource
                 Forms\Components\TextInput::make('cpf')
                     ->label('CPF')
                     ->required()
+                    ->mask('999.999.999-99')
+                    ->rule('cpf')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('phone')
                     ->label('Telefone')
@@ -50,7 +52,7 @@ class PersonResource extends Resource
                     ->date()
                     ->required(),
                 Forms\Components\TextInput::make('family_income')
-                    ->label('Renda Familiar')
+                    ->label('Renda Mensal Familiar')
                     ->prefix('R$')
                     ->required()
                     ->numeric()
@@ -90,6 +92,15 @@ class PersonResource extends Resource
                 Forms\Components\TextInput::make('state')
                     ->label('Estado')
                     ->required(),
+                Forms\Components\FileUpload::make('image_path')
+                    ->label('Foto de Perfil')
+                    ->columnSpanFull()
+                    ->visibility('public')
+                    ->maxSize(8 * 1024)
+                    ->directory('public/people')
+                    ->image()
+                    ->imageEditor()
+                    ->required(),
             ]);
     }
 
@@ -109,19 +120,10 @@ class PersonResource extends Resource
                 Tables\Columns\TextColumn::make('cpf')
                     ->label('CPF')
                     ->searchable(),
+                Tables\Columns\ImageColumn::make('image_path')
+                    ->label('Foto de Perfil')
+                    ->circular(),
 
-                // Tables\Columns\TextColumn::make('financialMovements_sum_value')
-                //     ->label('Valor Gasto')
-                //     ->color('danger')
-                //     ->money('BRL', locale: 'pt-BR')
-                //     ->sortable()
-                //     ->searchable()
-                //     ->getStateUsing(function ($record) {
-                //         return $record->financialMovements()
-                //             ->selectRaw('SUM(financial_movement_person.value) as total')
-                //             ->pluck('total')
-                //             ->first() ?? 0;
-                //     }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criação')
                     ->dateTime()

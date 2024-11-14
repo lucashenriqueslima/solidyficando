@@ -57,6 +57,7 @@ class CompanyResource extends Resource
                                 Forms\Components\TextInput::make('cnpj')
                                     ->label(fn(Get $get) => $get('acccount_type') === SignInAccountType::CPF->value ? 'CPF' : 'CNPJ')
                                     ->mask(fn(Get $get) => $get('acccount_type') === SignInAccountType::CPF->value ? '999.999.999-99' : '99.999.999/9999-99')
+                                    ->rule(fn(Get $get) => $get('acccount_type') === SignInAccountType::CPF->value ? 'cpf' : 'cnpj')
                                     ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('cmas')
@@ -133,6 +134,7 @@ class CompanyResource extends Resource
                                 Forms\Components\TextInput::make('cpf')
                                     ->label('CPF')
                                     ->mask('999.999.999-99')
+                                    ->rule('cpf')
                                     ->required(),
                             ]),
                         Fieldset::make('Contato')

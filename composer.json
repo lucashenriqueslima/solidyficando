@@ -10,6 +10,7 @@
         "laravel/framework": "^11.9",
         "laravel/octane": "^2.5",
         "laravel/tinker": "^2.9",
+        "laravellegends/pt-br-validator": "^11.0",
         "league/flysystem-aws-s3-v3": "^3.0",
         "leandrocfe/filament-ptbr-form-fields": "^3.0",
         "webbingbrasil/filament-copyactions": "^3.0"
