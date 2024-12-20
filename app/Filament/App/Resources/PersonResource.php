@@ -86,6 +86,7 @@ class PersonResource extends Resource
                         Forms\Components\Select::make('pix_key_type')
                             ->label('Tipo de Chave PIX')
                             ->options(PixKeyType::class)
+                            ->live()
                             ->required(),
                         Forms\Components\TextInput::make('pix_key')
                             ->label('Chave PIX')
