@@ -88,7 +88,9 @@ class CompanyResource extends Resource
                                     ->options(PixKeyType::class),
                                 Forms\Components\TextInput::make('pix_key')
                                     ->label('Chave PIX')
-                                    ->maxLength(255)
+                                    ->mask(fn(Get $get) => PixKeyType::getMask($get('pix_key_type')))
+                                    ->minLength(fn(Get $get) => PixKeyType::getMinLength($get('pix_key_type')))
+                                    ->rule(fn(Get $get) => PixKeyType::getRule($get('pix_key_type')))
                                     ->unique(ignoreRecord: true),
                             ]),
                         Fieldset::make('Endereço')
