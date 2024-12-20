@@ -85,6 +85,7 @@ class CompanyResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('pix_key_type')
                                     ->label('Tipo de Chave PIX')
+                                    ->live()
                                     ->options(PixKeyType::class),
                                 Forms\Components\TextInput::make('pix_key')
                                     ->label('Chave PIX')
