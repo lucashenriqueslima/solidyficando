@@ -55,6 +55,7 @@ class PersonResource extends Resource
                                 ->label('Telefone')
                                 ->tel()
                                 ->required()
+                                ->mask('(99) 99999-9999')
                                 ->maxLength(255),
                             Forms\Components\DatePicker::make('birthday')
                                 ->label('Data de Nascimento')
@@ -88,7 +89,7 @@ class PersonResource extends Resource
                         Forms\Components\TextInput::make('pix_key')
                             ->label('Chave PIX')
                             ->maxLength(255)
-                            ->unique()
+                            ->unique(ignoreRecord: true)
                             ->required(),
 
                     ]),

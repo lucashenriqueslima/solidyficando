@@ -23,4 +23,31 @@ enum PixKeyType: string implements HasLabel
             self::OTHER => 'Outro',
         };
     }
+
+    public static function getMask(?string $pixKeyType): string
+    {
+        return match ($pixKeyType) {
+            self::CPF->value => '999.999.999-99',
+            self::CNPJ->value => '99.999.999/9999-99',
+            default => '',
+        };
+    }
+
+    public static function getMinLength(?string $pixKeyType): int
+    {
+        return match ($pixKeyType) {
+            self::CPF->value => 14,
+            self::CNPJ->value => 18,
+            default => 0,
+        };
+    }
+
+    public static function getRule(?string $pixKeyType): string
+    {
+        return match ($pixKeyType) {
+            self::CPF->value => 'cpf',
+            self::CNPJ->value => 'cnpj',
+            default => null,
+        };
+    }
 }

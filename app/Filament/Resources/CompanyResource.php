@@ -89,7 +89,7 @@ class CompanyResource extends Resource
                                 Forms\Components\TextInput::make('pix_key')
                                     ->label('Chave PIX')
                                     ->maxLength(255)
-                                    ->unique(),
+                                    ->unique(ignoreRecord: true),
                             ]),
                         Fieldset::make('Endereço')
                             ->schema([
