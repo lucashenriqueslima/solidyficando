@@ -4,10 +4,12 @@ namespace App\Filament\App\Resources;
 
 use App\Enums\EducationLevel;
 use App\Enums\Housing;
+use App\Enums\PixKeyType;
 use App\Filament\App\Resources\PersonResource\Pages;
 use App\Filament\App\Resources\PersonResource\RelationManagers;
 use App\Models\Person;
 use Filament\Forms;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -35,64 +37,90 @@ class PersonResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('Nome')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('cpf')
-                    ->label('CPF')
-                    ->required()
-                    ->mask('999.999.999-99')
-                    ->rule('cpf')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('phone')
-                    ->label('Telefone')
-                    ->tel()
-                    ->mask('(99) 99999-9999')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\DatePicker::make('birthday')
-                    ->label('Data de Nascimento')
-                    ->date()
-                    ->required(),
-                Money::make('family_income')
-                    ->label('Renda Mensal Familiar')
-                    ->required(),
-                Forms\Components\Select::make('education')
-                    ->label('Escolaridade')
-                    ->options(EducationLevel::class)
-                    ->required(),
-                Forms\Components\Select::make('housing')
-                    ->label('Moradia')
-                    ->options(Housing::class)
-                    ->required(),
+                Fieldset::make('Informação Pessoais')
+                    ->schema(
+                        [
 
-                Forms\Components\TextInput::make('children')
-                    ->label('Quantidade de Filhos')
-                    ->numeric()
-                    ->required(),
-                Forms\Components\TextInput::make('cep')
-                    ->label('CEP')
-                    ->required()
-                    ->maxLength(9)
-                    ->mask('99999-999')
-                    ->reactive()
-                    ->afterStateUpdated(fn($state, callable $set) => static::buscarEnderecoPorCep($state, $set)),
-                Forms\Components\TextInput::make('address')
-                    ->label('Endereço')
-                    ->required(),
-                Forms\Components\TextInput::make('number')
-                    ->label('Número')
-                    ->required(),
-                Forms\Components\TextInput::make('neighborhood')
-                    ->label('Bairro')
-                    ->required(),
-                Forms\Components\TextInput::make('city')
-                    ->label('Cidade')
-                    ->required(),
-                Forms\Components\TextInput::make('state')
-                    ->label('Estado')
-                    ->required(),
+                            Forms\Components\TextInput::make('name')
+                                ->label('Nome')
+                                ->required()
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('cpf')
+                                ->label('CPF')
+                                ->required()
+                                ->mask('999.999.999-99')
+                                ->rule('cpf')
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('phone')
+                                ->label('Telefone')
+                                ->tel()
+                                ->required()
+                                ->maxLength(255),
+                            Forms\Components\DatePicker::make('birthday')
+                                ->label('Data de Nascimento')
+                                ->date()
+                                ->required(),
+                            Forms\Components\TextInput::make('family_income')
+                                ->label('Renda Mensal Familiar')
+                                ->prefix('R$')
+                                ->required()
+                                ->numeric()
+                                ->required(),
+                            Forms\Components\Select::make('education')
+                                ->label('Escolaridade')
+                                ->options(EducationLevel::class)
+                                ->required(),
+                            Forms\Components\Select::make('housing')
+                                ->label('Moradia')
+                                ->options(Housing::class)
+                                ->required(),
+                            Forms\Components\TextInput::make('children')
+                                ->label('Quantidade de Filhos')
+                                ->numeric()
+                                ->required(),
+
+                        ]
+                    ),
+
+                Fieldset::make('Informações Bancárias')
+                    ->schema([
+                        Forms\Components\Select::make('pix_key_type')
+                            ->label('Tipo de Chave PIX')
+                            ->options(PixKeyType::class),
+                        Forms\Components\TextInput::make('pix_key')
+                            ->label('Chave PIX')
+                            ->maxLength(255)
+                            ->unique(),
+
+                    ]),
+
+                Fieldset::make('Informações de Endereço')
+                    ->schema([
+                        Forms\Components\TextInput::make('cep')
+                            ->label('CEP')
+                            ->required()
+                            ->maxLength(9)
+                            ->mask('99999-999')
+                            ->reactive()
+                            ->afterStateUpdated(fn($state, callable $set) => static::buscarEnderecoPorCep($state, $set)),
+                        Forms\Components\TextInput::make('address')
+                            ->label('Endereço')
+                            ->required(),
+                        Forms\Components\TextInput::make('number')
+                            ->label('Número')
+                            ->required(),
+                        Forms\Components\TextInput::make('neighborhood')
+                            ->label('Bairro')
+                            ->required(),
+                        Forms\Components\TextInput::make('city')
+                            ->label('Cidade')
+                            ->required(),
+                        Forms\Components\TextInput::make('state')
+                            ->label('Estado')
+                            ->required(),
+
+                    ]),
+
                 Forms\Components\FileUpload::make('image_path')
                     ->label('Foto de Perfil')
                     ->columnSpanFull()
@@ -100,9 +128,7 @@ class PersonResource extends Resource
                     ->maxSize(8 * 1024)
                     ->directory('public/people')
                     ->image()
-                    ->imageEditor()
-                    ->required(),
-
+                    ->imageEditor(),
             ]);
     }
 

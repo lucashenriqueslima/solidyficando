@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\PixKeyType;
 use App\Enums\SignInAccountType;
 use App\Filament\Resources\CompanyResource\Pages;
 use App\Filament\Resources\CompanyResource\RelationManagers;
@@ -79,6 +80,17 @@ class CompanyResource extends Resource
                                     ->maxLength(255)
                                     ->required(),
                             ]),
+
+                        Fieldset::make('Informações Bancárias')
+                            ->schema([
+                                Forms\Components\Select::make('pix_key_type')
+                                    ->label('Tipo de Chave PIX')
+                                    ->options(PixKeyType::class),
+                                Forms\Components\TextInput::make('pix_key')
+                                    ->label('Chave PIX')
+                                    ->maxLength(255)
+                                    ->unique(),
+                            ]),
                         Fieldset::make('Endereço')
                             ->schema([
                                 Forms\Components\TextInput::make('cep')
@@ -150,6 +162,7 @@ class CompanyResource extends Resource
                                     ->mask('(99) 99999-9999')
                                     ->maxLength(255),
                             ]),
+
                         Fieldset::make('Endereço')
                             ->schema([
                                 Forms\Components\TextInput::make('cep')
