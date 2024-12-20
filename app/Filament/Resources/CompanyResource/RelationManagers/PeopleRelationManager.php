@@ -57,11 +57,8 @@ class PeopleRelationManager extends RelationManager
                                 ->label('Data de Nascimento')
                                 ->date()
                                 ->required(),
-                            Forms\Components\TextInput::make('family_income')
+                            Money::make('family_income')
                                 ->label('Renda Mensal Familiar')
-                                ->prefix('R$')
-                                ->required()
-                                ->numeric()
                                 ->required(),
                             Forms\Components\Select::make('education')
                                 ->label('Escolaridade')

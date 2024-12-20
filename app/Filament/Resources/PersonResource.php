@@ -17,6 +17,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Leandrocfe\FilamentPtbrFormFields\Money;
 
 class PersonResource extends Resource
 {
@@ -57,11 +58,8 @@ class PersonResource extends Resource
                                 ->label('Data de Nascimento')
                                 ->date()
                                 ->required(),
-                            Forms\Components\TextInput::make('family_income')
+                            Money::make('family_income')
                                 ->label('Renda Mensal Familiar')
-                                ->prefix('R$')
-                                ->required()
-                                ->numeric()
                                 ->required(),
                             Forms\Components\Select::make('education')
                                 ->label('Escolaridade')
