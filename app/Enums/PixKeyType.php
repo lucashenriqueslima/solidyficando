@@ -29,6 +29,7 @@ enum PixKeyType: string implements HasLabel
         return match ($pixKeyType) {
             self::CPF->value => '999.999.999-99',
             self::CNPJ->value => '99.999.999/9999-99',
+            self::PHONE->value => '(99) 99999-9999',
             default => '',
         };
     }
@@ -42,7 +43,7 @@ enum PixKeyType: string implements HasLabel
         };
     }
 
-    public static function getRule(?string $pixKeyType): string
+    public static function getRule(?string $pixKeyType): ?string
     {
         return match ($pixKeyType) {
             self::CPF->value => 'cpf',
