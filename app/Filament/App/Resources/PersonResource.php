@@ -11,6 +11,7 @@ use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
@@ -90,6 +91,9 @@ class PersonResource extends Resource
                             ->label('Chave PIX')
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
+                            ->mask(fn(Get $get) => PixKeyType::getMask($get('pix_key_type')))
+                            ->minLength(fn(Get $get) => PixKeyType::getMinLength($get('pix_key_type')))
+                            ->rule(fn(Get $get) => PixKeyType::getRule($get('pix_key_type')))
                             ->required(),
 
                     ]),
