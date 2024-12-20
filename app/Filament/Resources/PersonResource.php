@@ -81,11 +81,13 @@ class PersonResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('pix_key_type')
                             ->label('Tipo de Chave PIX')
-                            ->options(PixKeyType::class),
+                            ->options(PixKeyType::class)
+                            ->required(),
                         Forms\Components\TextInput::make('pix_key')
                             ->label('Chave PIX')
                             ->maxLength(255)
-                            ->unique(),
+                            ->unique()
+                            ->required(),
                     ]),
 
                 Fieldset::make('Informações de Endereço')
