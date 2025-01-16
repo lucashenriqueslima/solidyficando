@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CompanyStatus;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -26,6 +27,13 @@ class Company extends Authenticatable implements FilamentUser
     }
 
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => CompanyStatus::class,
+        ];
+    }
 
     public function events(): HasMany
     {

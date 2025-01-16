@@ -10,6 +10,7 @@ use App\Filament\Resources\CompanyResource\RelationManagers\EventsRelationManage
 use App\Filament\Resources\CompanyResource\RelationManagers\PeopleRelationManager;
 use App\Filament\Resources\CompanyResource\RelationManagers\PresidentRelationManager;
 use App\Models\Company;
+use App\Enums\CompanyStatus;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -61,8 +62,14 @@ class CompanyResource extends Resource
                                     ->rule(fn(Get $get) => $get('acccount_type') === SignInAccountType::CPF->value ? 'cpf' : 'cnpj')
                                     ->required()
                                     ->maxLength(255),
+                                Forms\Components\ToggleButtons::make('status')
+                                    ->label('Status')
+                                    ->inline()
+                                    ->options(CompanyStatus::class)
+                                    ->required(),
                                 Forms\Components\TextInput::make('cmas')
                                     ->label('CMAS')
+                                    ->columnSpanFull()
                                     ->maxLength(255),
                             ]),
 
@@ -216,6 +223,11 @@ class CompanyResource extends Resource
                 Tables\Columns\TextColumn::make('cnpj')
                     ->label('CNPJ')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('cmas')
                     ->label('CMAS')
                     ->searchable(),
