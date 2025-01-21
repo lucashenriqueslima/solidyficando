@@ -86,8 +86,7 @@ class PersonResource extends Resource
                         Forms\Components\Select::make('pix_key_type')
                             ->label('Tipo de Chave PIX')
                             ->options(PixKeyType::class)
-                            ->live()
-                            ->required(),
+                            ->live(),
                         Forms\Components\TextInput::make('pix_key')
                             ->label('Chave PIX')
                             ->maxLength(255)
@@ -95,8 +94,7 @@ class PersonResource extends Resource
                             ->disabled(fn(Get $get) => $get('pix_key_type') == null)
                             ->mask(fn(Get $get) => PixKeyType::getMask($get('pix_key_type')))
                             ->minLength(fn(Get $get) => PixKeyType::getMinLength($get('pix_key_type')))
-                            ->rule(fn(Get $get) => PixKeyType::getRule($get('pix_key_type')))
-                            ->required(),
+                            ->rule(fn(Get $get) => PixKeyType::getRule($get('pix_key_type'))),
 
                     ]),
 
