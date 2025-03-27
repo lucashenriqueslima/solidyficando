@@ -78,7 +78,6 @@ class PersonResource extends Resource
 
                         ]
                     ),
-
                 Fieldset::make('Informações Bancárias')
                     ->schema([
                         Forms\Components\Select::make('pix_key_type')
