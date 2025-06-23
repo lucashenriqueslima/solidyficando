@@ -40,6 +40,11 @@ class Company extends Authenticatable implements FilamentUser
         return $this->hasMany(Event::class);
     }
 
+    public function financialMovements()
+    {
+        return $this->morphMany(FinancialMovement::class, 'movementable');
+    }
+
     public function people(): HasMany
     {
         return $this->hasMany(Person::class);

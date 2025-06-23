@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class FinancialMovement extends Model
 {
@@ -52,9 +53,9 @@ class FinancialMovement extends Model
         return $this->belongsTo(FinancialMovementCategory::class);
     }
 
-    public function company(): BelongsTo
+    public function movementable(): MorphTo
     {
-        return $this->belongsTo(Company::class);
+        return $this->morphTo();
     }
 
     public function people(): BelongsToMany

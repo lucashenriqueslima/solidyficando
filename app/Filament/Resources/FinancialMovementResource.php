@@ -188,6 +188,14 @@ class FinancialMovementResource extends Resource
                     ->date()
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('invoice_url')
+                    ->label('Link de Pagamento')
+                    ->url(fn(FinancialMovement $record): ?string => $record->invoice_url, true),
+                Tables\Columns\TextColumn::make('bank_slip_url')
+                    ->label('Link de Boleto')
+                    ->url(fn(FinancialMovement $record): ?string => $record->bank_slip_url, true),
+
+
 
                 Tables\Columns\TextColumn::make('status')
                     ->sortable()

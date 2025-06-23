@@ -7,6 +7,8 @@ use App\Filament\Resources\PartinerResource\Pages;
 use App\Filament\Resources\PartinerResource\RelationManagers;
 use App\Models\Partiner;
 use Filament\Forms;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
@@ -79,6 +81,30 @@ class PartinerResource extends Resource
                     ->columnSpanFull()
                     ->required(),
 
+                Fieldset::make('Configurações de Cobrança')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('is_to_charge')
+                            ->label('Cobrar Contribuição Mensal')
+                            ->onIcon('heroicon-o-check-circle')
+                            ->offIcon('heroicon-o-x-circle')
+                            ->default(false)
+                            ->inline(false)
+                            ->helperText('Ativar para cobrar a contribuição mensal do parceiro.')
+                            ->live()
+                            ->required(),
+                        Forms\Components\TextInput::make('billing_day')
+                            ->label('Dia de Cobrança')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(31)
+                            ->default(15)
+                            ->helperText('Dia do mês em que a cobrança será realizada.')
+                            ->required(fn(Get $get) => $get('is_to_charge') === true)
+                            ->visible(fn(Get $get) => $get('is_to_charge') === true)
+                            ->dehydrated(fn(Get $get) => $get('is_to_charge') === true)
+                            ->live(),
+                    ]),
             ]);
     }
 
@@ -140,8 +166,8 @@ class PartinerResource extends Resource
     {
         return [
             'index' => Pages\ListPartiners::route('/'),
-            // 'create' => Pages\CreatePartiner::route('/create'),
-            // 'edit' => Pages\EditPartiner::route('/{record}/edit'),
+            'create' => Pages\CreatePartiner::route('/create'),
+            'edit' => Pages\EditPartiner::route('/{record}/edit'),
         ];
     }
 }

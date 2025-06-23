@@ -21,4 +21,9 @@ class Partiner extends Model
     {
         return $this->belongsTo(Institution::class);
     }
+
+    public function financialMovements()
+    {
+        return $this->morphMany(FinancialMovement::class, 'movementable');
+    }
 }
