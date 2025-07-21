@@ -6,6 +6,21 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property string|null $asaas_id
+ * @property string $name
+ * @property string $cpf
+ * @property string $email
+ * @property string $phone
+ * @property bool $is_to_charge
+ * @property int $billing_day
+ * @property float $monthly_contribution
+ * @property \Illuminate\Support\Carbon $birthday
+ * @property ?int $institution_id
+ * @property ?int $department_id
+ *
+ */
 class Partiner extends Model
 {
     use HasFactory;

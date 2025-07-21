@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\HandleBillingGenerationAction;
 use App\Enums\BillingType;
 use App\Enums\FinancialMovementFlowType;
 use App\Enums\FinancialMovementStatus;
@@ -42,38 +43,11 @@ class HandleBillingGenerationCommand extends Command
             return;
         }
 
-        $financialMovementCategoryForMonthContributionId = FinancialMovementCategory::where('name', 'Contribuição Mensal (Boleto)')
-            ->firstOrFail()
-            ->id;
+        $financialMovementCategory = FinancialMovementCategory::where('name', 'Contribuição Mensal (Boleto)')
+            ->first();
 
-        if ($financialMovementCategoryForMonthContributionId === null) {
-            $this->error('Financial Movement Category for "Contribuição Mensal (Boleto)" not found.');
-            return;
-        }
+        $partiners->each(function (Partiner $partiner) use ($asaasService, $financialMovementCategory) {
 
-        $partiners->each(function (Partiner $partiner) use ($asaasService, $financialMovementCategoryForMonthContributionId) {
-            if (!$partiner->asaas_id) {
-                $customer = $asaasService->createCustomer(
-                    $partiner->name,
-                    $partiner->cpf,
-                    $partiner->email,
-                    $partiner->phone
-                );
-
-
-                if (!$customer) {
-                    $this->error("Failed to create customer for partiner: {$partiner->name}");
-                    return;
-                }
-
-                $partiner->update([
-                    'asaas_id' => $customer['id'],
-                ]);
-
-                $partiner->refresh();
-            }
-
-            //check if already has a billing for this month
             $existingBilling = $partiner->financialMovements()
                 ->whereMonth('due_date', now()->month)
                 ->exists();
@@ -83,34 +57,10 @@ class HandleBillingGenerationCommand extends Command
                 return;
             }
 
-            $billing = $asaasService->createBilling(
-                $partiner->asaas_id,
-                BillingType::BANK_SLIP,
-                $partiner->monthly_contribution,
-                now()->addMonth(),
+            (new HandleBillingGenerationAction())->execute(
+                partiner: $partiner,
+                financialMovementCategory: $financialMovementCategory,
             );
-
-            if (!$billing) {
-                $this->error("Failed to create billing for partiner: {$partiner->name}");
-                return;
-            }
-
-            $partiner->financialMovements()->create([
-                'asaas_id' => $billing['id'],
-                'value' => $billing['value'],
-                'due_date' => $billing['dueDate'],
-                'status' => FinancialMovementStatus::PENDING,
-                'flow_type' => FinancialMovementFlowType::IN,
-                'financial_movement_category_id' => $financialMovementCategoryForMonthContributionId,
-                'invoice_url' => $billing['invoiceUrl'] ?? null,
-                'bank_slip_url' => $billing['bankSlipUrl'] ?? null,
-            ]);
-
-            Log::info("Billing created for partiner: {$partiner->name}", [
-                'billing_id' => $billing['id'],
-                'value' => $billing['value'],
-                'due_date' => $billing['dueDate'],
-            ]);
         });
     }
 }

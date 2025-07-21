@@ -2,18 +2,25 @@
 
 namespace App\Filament\Resources;
 
+use App\Actions\HandleBillingGenerationAction;
 use App\Enums\SignInAccountType;
 use App\Filament\Resources\PartinerResource\Pages;
 use App\Filament\Resources\PartinerResource\RelationManagers;
+use App\Filament\Resources\PartinerResource\RelationManagers\FinancialMovementsRelationManager;
+use App\Jobs\HandleBillingGenerationJob;
+use App\Models\FinancialMovementCategory;
 use App\Models\Partiner;
+use App\Services\Asaas\AsaasApiService;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Leandrocfe\FilamentPtbrFormFields\Money;
 
@@ -146,6 +153,34 @@ class PartinerResource extends Resource
                 //
             ])
             ->actions([
+                Action::make('generate_bank_slip')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->label('Gerar Boleto')
+                    ->form([
+                        Money::make('amount')
+                            ->label('Valor do Boleto')
+                            ->required()
+                            ->minValue(5)
+                            ->maxValue(1000000)
+                            ->default(0)
+                            ->helperText('Valor a ser cobrado no boleto.'),
+                    ])
+                    ->action(
+                        function (Partiner $record, array $data): void {
+                            dispatch(
+                                new HandleBillingGenerationJob(
+                                    $record,
+                                    (float) $data['amount'],
+                                )
+                            );
+
+                            Notification::make()
+                                ->title('Boleto gerado com sucesso!')
+                                ->success()
+                                ->send();
+                        }
+                    ),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -158,7 +193,7 @@ class PartinerResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            FinancialMovementsRelationManager::class,
         ];
     }
 
