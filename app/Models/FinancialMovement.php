@@ -12,6 +12,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
+/**
+ * @property int $id
+ * @property string $description
+ * @property float $value
+ * @property FinancialMovementFlowType $flow_type
+ * @property FinancialMovementStatus $status
+ * @property \Illuminate\Support\Carbon|null $due_date
+ * @property \Illuminate\Support\Carbon|null $payment_date
+ * @property int|null $financial_movement_category_id
+ * @property string|null $invoice_url
+ * @property string|null $bank_slip_url
+ */
 class FinancialMovement extends Model
 {
     use HasFactory;

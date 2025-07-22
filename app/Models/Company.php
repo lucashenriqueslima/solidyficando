@@ -11,6 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
 
+
+/**
+ * @property string $name
+ * @property string $cnpj
+ * @property CompanyStatus $status
+ */
 class Company extends Authenticatable implements FilamentUser
 {
     use HasFactory;

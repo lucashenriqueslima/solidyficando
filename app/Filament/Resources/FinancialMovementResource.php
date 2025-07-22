@@ -5,10 +5,10 @@ namespace App\Filament\Resources;
 use App\Enums\FinancialMovementFlowType;
 use App\Enums\FinancialMovementStatus;
 use App\Filament\Resources\FinancialMovementResource\Pages;
-use App\Filament\Resources\FinancialMovementResource\RelationManagers;
 use App\Models\Company;
 use App\Models\FinancialMovement;
 use App\Models\FinancialMovementCategory;
+use App\Models\Partiner;
 use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Components\Hidden;
@@ -85,29 +85,17 @@ class FinancialMovementResource extends Resource
                             ->getOptionLabelFromRecordUsing(
                                 fn(Company $record) => "{$record->name} | {$record->cnpj}"
                             ),
-                        Forms\Components\Select::make('people')
-                            ->label('Pessoas')
+                        Forms\Components\MorphToSelect::make('movementable')
+                            ->label('Entidade')
+                            ->searchable()
                             ->columnSpanFull()
-                            ->multiple()
-                            ->preload()
-                            ->relationship(
-                                name: 'people',
-                                titleAttribute: 'name',
-                                modifyQueryUsing: fn(Builder $query, Get $get) => $query->orderBy('name')
-                                    ->where(
-                                        'company_id',
-                                        $get('company_id'),
-                                    ),
-                            )
-                            ->searchable(['name', 'cpf'])
-                            ->getOptionLabelFromRecordUsing(
-                                fn(Person $record) => "{$record->name} | {$record->cpf}"
-                            )
-                            ->pivotData(function ($state, Get $get): array {
-                                return [
-                                    'value' => -abs($get('value') / count($state)),
-                                ];
-                            }),
+                            ->types([
+                                Forms\Components\MorphToSelect\Type::make(Partiner::class)
+                                    ->label('Parceiro')
+                                    ->getOptionLabelFromRecordUsing(fn(Partiner $record) => "{$record->name} | {$record->cpf}")
+                                    ->searchColumns(['name', 'cpf']),
+                            ])
+                            ->hiddenOn('edit'),
                     ])
                     ->visible(fn(Get $get) => $get('flow_type') === FinancialMovementFlowType::OUT->value),
                 Forms\Components\Textarea::make('description')
