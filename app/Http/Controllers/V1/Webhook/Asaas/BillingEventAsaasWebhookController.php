@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1\Webhook\Asaas;
 
+use App\Enums\FinancialMovementStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BillingEventAsaasWebhookRequest;
 use App\Models\FinancialMovement;
@@ -18,7 +19,7 @@ class BillingEventAsaasWebhookController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function __invoke(BillingEventAsaasWebhookRequest $request, AsaasWebhookService $assasWebhookService): JsonResponse
+    public function __invoke(BillingEventAsaasWebhookRequest $request): JsonResponse
     {
         Log::info('Asaas Webhook Received', [
             'data' => $request->all(),
@@ -26,19 +27,28 @@ class BillingEventAsaasWebhookController extends Controller
 
         $validated = $request->validated();
 
-        $financialMovement = FinancialMovement::where('external_id', $validated['payment.id'])
+        $financialMovement = FinancialMovement::where('asaas_id', $validated['payment.id'])
             ->first();
 
         if (!$financialMovement) {
             Log::warning('Financial Movement not found for Asaas webhook', [
-                'external_id' => $validated['payment.id'],
+                'asaas_id' => $validated['payment.id'],
             ]);
             return response()->json(status: 404);
         }
 
 
         match ($request->input('event')) {
-            'PAYMENT_CONFIRMED' => $assasWebhookService->handlePaymentConfirmedEvent($request),
+            'PAYMENT_CONFIRMED' => function () use ($financialMovement, $request) {
+                $financialMovement->status = FinancialMovementStatus::PAID;
+                $financialMovement->payment_date = now();
+                $financialMovement->save();
+
+                Log::info('Financial Movement updated for Asaas webhook', [
+                    'asaas_id' => $financialMovement->asaas_id,
+                    'status' => $financialMovement->status,
+                ]);
+            },
         };
 
         return response()->json(['status' => 'success'], 200);

@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 /**
  * @property int $id
+ * @property string|null $asaas_id
  * @property string $description
  * @property float $value
  * @property FinancialMovementFlowType $flow_type
