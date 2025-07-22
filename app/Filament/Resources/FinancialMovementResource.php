@@ -23,6 +23,7 @@ use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Leandrocfe\FilamentPtbrFormFields\Money;
 
 class FinancialMovementResource extends Resource
 {
@@ -50,6 +51,24 @@ class FinancialMovementResource extends Resource
                     ->columnSpanFull()
                     ->grouped()
                     ->required(),
+                Forms\Components\Fieldset::make('Atribuir Movimentação Financeira para...')
+                    ->schema([
+                        Forms\Components\MorphToSelect::make('movementable')
+                            ->label('Entidade')
+                            ->searchable()
+                            ->columnSpanFull()
+                            ->types([
+                                Forms\Components\MorphToSelect\Type::make(Partiner::class)
+                                    ->label('Parceiro')
+                                    ->getOptionLabelFromRecordUsing(fn(Partiner $record) => "{$record->name} | {$record->cpf}")
+                                    ->searchColumns(['name', 'cpf']),
+                                Forms\Components\MorphToSelect\Type::make(Company::class)
+                                    ->label('Instituição')
+                                    ->getOptionLabelFromRecordUsing(fn(Company $record) => "{$record->name} | {$record->cnpj}")
+                                    ->searchColumns(['name', 'cnpj']),
+                            ])
+                            ->hiddenOn('edit'),
+                    ]),
                 Forms\Components\Select::make('financial_movement_category_id')
                     ->label('Categoria')
                     ->columnSpanFull()
@@ -70,47 +89,20 @@ class FinancialMovementResource extends Resource
                             ->options(FinancialMovementFlowType::class)
                             ->required(),
                     ]),
-                Forms\Components\Fieldset::make('Atribuir Saída para...')
-                    ->schema([
-                        Forms\Components\Select::make('company_id')
-                            ->label(label: 'Instituição')
-                            ->columnSpanFull()
-                            ->relationship(
-                                name: 'company',
-                                titleAttribute: 'name',
-                                modifyQueryUsing: fn(Builder $query, Get $get) => $query->orderBy('name'),
-                            )
-                            ->searchable(['name', 'cnpj'])
-                            ->preload()
-                            ->getOptionLabelFromRecordUsing(
-                                fn(Company $record) => "{$record->name} | {$record->cnpj}"
-                            ),
-                        Forms\Components\MorphToSelect::make('movementable')
-                            ->label('Entidade')
-                            ->searchable()
-                            ->columnSpanFull()
-                            ->types([
-                                Forms\Components\MorphToSelect\Type::make(Partiner::class)
-                                    ->label('Parceiro')
-                                    ->getOptionLabelFromRecordUsing(fn(Partiner $record) => "{$record->name} | {$record->cpf}")
-                                    ->searchColumns(['name', 'cpf']),
-                            ])
-                            ->hiddenOn('edit'),
-                    ])
-                    ->visible(fn(Get $get) => $get('flow_type') === FinancialMovementFlowType::OUT->value),
                 Forms\Components\Textarea::make('description')
                     ->label('Descrição')
                     ->columnSpanFull()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('value')
+                Money::make('value')
                     ->label('Valor')
-                    ->prefix('R$')
-                    ->suffixIcon('heroicon-s-currency-dollar')
+                    ->required()
+                    ->minValue(5)
+                    ->maxValue(1000000)
+                    ->default(0)
                     ->suffixIconColor(fn(Get $get) => $get('flow_type') === 'in' ? 'success' : 'danger')
                     ->columnSpanFull()
-                    ->numeric()
                     ->live()
-                    ->required(),
+                    ->helperText('Valor a ser cobrado.'),
                 Forms\Components\Select::make('status')
                     ->disabled(fn(Get $get) => !$get('flow_type'))
                     ->columnSpanFull()
