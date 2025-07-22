@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\V1\Webhook\Asaas\BillingEventAsaasWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,6 +10,8 @@ Route::get('/user', function (Request $request) {
 
 Route::prefix('v1')->group(function () {
     Route::prefix('webhooks')->group(function () {
-        Route::post('asaas', \App\Http\Controllers\V1\Webhook\AsaasWebhookController::class);
+        Route::prefix('asaas')->middleware(\App\Http\Middleware\AsaasWebhookMiddleware::class)->group(function () {
+            Route::post('/billig/event', BillingEventAsaasWebhookController::class);
+        });
     });
 });
