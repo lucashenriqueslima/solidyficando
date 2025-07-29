@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PartinerResource\RelationManagers;
 
 use App\Enums\FinancialMovementStatus;
+use App\Models\FinancialMovement;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -69,7 +70,12 @@ class FinancialMovementsRelationManager extends RelationManager
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status'),
-                Tables\Columns\TextColumn::make('')
+                Tables\Columns\TextColumn::make('invoice_url')
+                    ->label('Link de Pagamento')
+                    ->url(fn(FinancialMovement $record): ?string => $record->invoice_url, true),
+                Tables\Columns\TextColumn::make('bank_slip_url')
+                    ->label('Link de Boleto')
+                    ->url(fn(FinancialMovement $record): ?string => $record->bank_slip_url, true),
 
             ])
             ->filters([

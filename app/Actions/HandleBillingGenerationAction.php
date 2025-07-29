@@ -8,6 +8,7 @@ use App\Enums\FinancialMovementStatus;
 use App\Models\FinancialMovementCategory;
 use App\Models\Partiner;
 use App\Services\Asaas\AsaasApiService;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class HandleBillingGenerationAction
@@ -16,6 +17,7 @@ class HandleBillingGenerationAction
         Partiner $partiner,
         FinancialMovementCategory $financialMovementCategory,
         ?float $value = null,
+        ?Carbon $dueDate = null,
     ): void {
 
         $asaasApiService = new AsaasApiService();
@@ -45,7 +47,7 @@ class HandleBillingGenerationAction
             $partiner->asaas_id,
             BillingType::BANK_SLIP,
             $value ?? $partiner->monthly_contribution,
-            now()->addMonth(),
+            $dueDate ?? now()->addMonth(),
         );
 
         if (!$billing) {

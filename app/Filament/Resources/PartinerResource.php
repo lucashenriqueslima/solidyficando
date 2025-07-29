@@ -12,7 +12,10 @@ use App\Models\FinancialMovementCategory;
 use App\Models\Partiner;
 use App\Services\Asaas\AsaasApiService;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -158,21 +161,34 @@ class PartinerResource extends Resource
                     ->icon('heroicon-o-document-text')
                     ->color('info')
                     ->label('Gerar Boleto')
-                    ->form([
-                        Money::make('amount')
-                            ->label('Valor do Boleto')
-                            ->required()
-                            ->minValue(5)
-                            ->maxValue(1000000)
-                            ->default(0)
-                            ->helperText('Valor a ser cobrado no boleto.'),
+                    ->form(form: [
+                        Grid::make('Gerar Boleto')
+                            ->columns(2)
+                            ->schema([
+                                Money::make('amount')
+                                    ->label('Valor do Boleto')
+                                    ->columnSpan(1)
+                                    ->required()
+                                    ->minValue(5)
+                                    ->maxValue(1000000)
+                                    ->default(0)
+                                    ->helperText('Valor a ser cobrado no boleto.'),
+                                DatePicker::make('due_date')
+                                    ->label('Data de Vencimento')
+                                    ->columnSpan(1)
+                                    ->default(now()->addMonth())
+                                    ->required()
+                                    ->helperText('Data de vencimento do boleto.')
+                                    ->minDate(now()),
+                            ]),
                     ])
                     ->action(
                         function (Partiner $record, array $data): void {
                             dispatch(
                                 new HandleBillingGenerationJob(
-                                    $record,
-                                    (float) $data['amount'],
+                                    partiner: $record,
+                                    value: (float) $data['amount'],
+                                    dueDate: $data['due_date'],
                                 )
                             );
 

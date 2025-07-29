@@ -11,6 +11,7 @@ enum FinancialMovementStatus: string implements HasLabel, HasColor, HasIcon
     case PENDING = 'pending';
     case PAID = 'paid';
     case CANCELLED = 'cancelled';
+    case OVERDUE = 'overdue';
 
     public function getLabel(): string
     {
