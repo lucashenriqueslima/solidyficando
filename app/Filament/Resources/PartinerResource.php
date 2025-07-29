@@ -48,6 +48,7 @@ class PartinerResource extends Resource
                     ->label(fn(Get $get) => $get('document_type') === SignInAccountType::CPF->value ? 'CPF' : 'CNPJ')
                     ->mask(fn(Get $get) => $get('document_type') === SignInAccountType::CPF->value ? '999.999.999-99' : '99.999.999/9999-99')
                     ->rule(fn(Get $get) => $get('document_type') === SignInAccountType::CPF->value ? 'cpf' : 'cnpj')
+                    ->unique(ignoreRecord: true)
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Select::make('institution_id')
