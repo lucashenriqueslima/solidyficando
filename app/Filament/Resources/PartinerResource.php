@@ -11,6 +11,7 @@ use App\Jobs\HandleBillingGenerationJob;
 use App\Models\FinancialMovementCategory;
 use App\Models\Partiner;
 use App\Services\Asaas\AsaasApiService;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Fieldset;
@@ -188,7 +189,7 @@ class PartinerResource extends Resource
                                 new HandleBillingGenerationJob(
                                     partiner: $record,
                                     value: (float) $data['amount'],
-                                    dueDate: $data['due_date'],
+                                    dueDate: Carbon::parse($data['due_date']),
                                 )
                             );
 
