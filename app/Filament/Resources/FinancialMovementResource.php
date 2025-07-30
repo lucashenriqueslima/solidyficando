@@ -130,7 +130,7 @@ class FinancialMovementResource extends Resource
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('movementable.name')
-                    ->label('Gado/Embrião')
+                    ->label('Nome')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('value')
