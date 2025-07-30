@@ -27,12 +27,12 @@ class BillingEventAsaasWebhookController extends Controller
 
         $validated = $request->validated();
 
-        $financialMovement = FinancialMovement::where('asaas_id', $validated['payment.id'])
+        $financialMovement = FinancialMovement::where('asaas_id', $validated['payment']['id'])
             ->first();
 
         if (!$financialMovement) {
             Log::warning('Financial Movement not found for Asaas webhook', [
-                'asaas_id' => $validated['payment.id'],
+                'asaas_id' => $validated['payment']['id'],
             ]);
             return response()->json(status: 404);
         }
