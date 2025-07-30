@@ -129,6 +129,10 @@ class FinancialMovementResource extends Resource
                     ->label('Entrada/Saída')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\TextColumn::make('movementable.name')
+                    ->label('Gado/Embrião')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('value')
                     ->label('Valor')
                     ->color(
