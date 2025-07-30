@@ -8,6 +8,6 @@ return [
     ],
     'webhook' =>
     [
-        'access_token' => env('ASAAS_WEBHOOK_TOKEN'),
+        'access_token' => env('ASAAS_WEBHOOK_ACCESS_TOKEN'),
     ],
 ];
