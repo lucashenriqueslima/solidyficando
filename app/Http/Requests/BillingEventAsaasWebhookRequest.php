@@ -23,7 +23,7 @@ class BillingEventAsaasWebhookRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event' => 'required|string|in:PAYMENT_CONFIRMED',
+            'event' => 'required|string|in:PAYMENT_CONFIRMED,PAYMENT_RECEIVED',
             'payment' => 'required|array',
             'payment.id' => 'required|string',
             'payment.value' => 'required|numeric',
