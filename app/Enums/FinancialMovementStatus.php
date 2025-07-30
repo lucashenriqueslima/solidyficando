@@ -18,6 +18,7 @@ enum FinancialMovementStatus: string implements HasLabel, HasColor, HasIcon
         return match ($this) {
             self::PENDING => 'Pendente',
             self::PAID => 'Pago',
+            self::OVERDUE => 'Vencido',
             self::CANCELLED => 'Cancelado',
         };
     }
@@ -27,6 +28,7 @@ enum FinancialMovementStatus: string implements HasLabel, HasColor, HasIcon
         return match ($this) {
             self::PENDING => 'warning',
             self::PAID => 'success',
+            self::OVERDUE => 'danger',
             self::CANCELLED => 'danger',
         };
     }
@@ -36,6 +38,7 @@ enum FinancialMovementStatus: string implements HasLabel, HasColor, HasIcon
         return match ($this) {
             self::PENDING => 'heroicon-o-clock',
             self::PAID => 'heroicon-o-check-circle',
+            self::OVERDUE => 'heroicon-o-exclamation-circle',
             self::CANCELLED => 'heroicon-o-x-circle',
         };
     }
