@@ -34,22 +34,18 @@ class BillingEventAsaasWebhookController extends Controller
             Log::warning('Financial Movement not found for Asaas webhook', [
                 'asaas_id' => $validated['payment']['id'],
             ]);
-            return response()->json(status: 404);
+            return response()->json(status: 200);
         }
 
-
-        match ($request->input('event')) {
-            'PAYMENT_CONFIRMED' => fn() => $this->updateFinancialMovement($financialMovement, $request),
-            'PAYMENT_RECEIVED' => fn() => $this->updateFinancialMovement($financialMovement, $request),
-        };
-
-        return response()->json(['status' => 'success'], 200);
-    }
-
-    private function updateFinancialMovement(FinancialMovement $financialMovement, Request $request): void
-    {
         $financialMovement->status = FinancialMovementStatus::PAID;
         $financialMovement->payment_date = now();
         $financialMovement->save();
+
+        Log::info('Financial Movement updated for Asaas webhook', [
+            'asaas_id' => $financialMovement->asaas_id,
+            'status' => $financialMovement->status,
+        ]);
+
+        return response()->json(['status' => 'success'], 200);
     }
 }
