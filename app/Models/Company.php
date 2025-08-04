@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Log;
 
 
@@ -59,5 +60,10 @@ class Company extends Authenticatable implements FilamentUser
     public function president(): HasOne
     {
         return $this->hasOne(President::class);
+    }
+
+    public function indicators(): BelongsToMany
+    {
+        return $this->belongsToMany(Indicator::class);
     }
 }

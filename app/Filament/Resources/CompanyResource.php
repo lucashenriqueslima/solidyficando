@@ -7,6 +7,7 @@ use App\Enums\SignInAccountType;
 use App\Filament\Resources\CompanyResource\Pages;
 use App\Filament\Resources\CompanyResource\RelationManagers;
 use App\Filament\Resources\CompanyResource\RelationManagers\EventsRelationManager;
+use App\Filament\Resources\CompanyResource\RelationManagers\IndicatorsRelationManager;
 use App\Filament\Resources\CompanyResource\RelationManagers\PeopleRelationManager;
 use App\Filament\Resources\CompanyResource\RelationManagers\PresidentRelationManager;
 use App\Models\Company;
@@ -264,6 +265,7 @@ class CompanyResource extends Resource
         return [
             PeopleRelationManager::class,
             EventsRelationManager::class,
+            IndicatorsRelationManager::class,
         ];
     }
 
