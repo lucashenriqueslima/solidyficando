@@ -233,8 +233,7 @@ class FinancialMovementResource extends Resource
                         ->label('Parceiro/Instituição')
                         ->relationship(
                             name: 'movementable',
-                            titleAttribute: 'name',
-                            modifyQueryUsing: fn(Builder $query) => $query->orderBy('name'),
+                            titleAttribute: 'name'
                         )
                         ->preload()
                         ->multiple()
