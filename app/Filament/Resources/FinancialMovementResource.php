@@ -11,7 +11,9 @@ use App\Models\FinancialMovementCategory;
 use App\Models\Partiner;
 use App\Models\Person;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
@@ -20,6 +22,9 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -201,9 +206,80 @@ class FinancialMovementResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
 
             ])
-            ->filters([
-                //
-            ])
+            ->filters(
+                [
+                    SelectFilter::make('flow_type')
+                        ->label('Entrada/Saída')
+                        ->options(FinancialMovementFlowType::class)
+                        ->multiple()
+                        ->preload()
+                        ->getOptionLabelFromRecordUsing(fn(FinancialMovementFlowType $record) => $record->getLabel(),),
+                    SelectFilter::make('status')
+                        ->label('Status')
+                        ->options(FinancialMovementStatus::class)
+                        ->multiple()
+                        ->preload()
+                        ->getOptionLabelFromRecordUsing(fn(FinancialMovementStatus $record) => $record->getLabel(),),
+                    SelectFilter::make('financial_movement_category_id')
+                        ->label('Categoria')
+                        ->relationship(
+                            name: 'financialMovementCategory',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn(Builder $query) => $query->orderBy('name'),
+                        )
+                        ->searchable(['name'])
+                        ->preload()
+                        ->multiple()
+                        ->getOptionLabelFromRecordUsing(fn(FinancialMovementCategory $record) => "{$record->name} | {$record->flow_type->getLabel()}"),
+                    SelectFilter::make('movementable')
+                        ->label('Parceiro/Instituição')
+                        ->relationship(
+                            name: 'movementable',
+                            titleAttribute: 'id',
+                            modifyQueryUsing: fn(Builder $query) => $query->orderBy('id'),
+                        )
+                        ->preload()
+                        ->multiple()
+                        ->getOptionLabelFromRecordUsing(fn($record) => $record->name),
+                    Filter::make('payment_date')
+                        ->label('Data de Pagamento')
+                        ->form([
+                            Section::make('Data de Pagamento')
+                                ->schema([
+                                    DatePicker::make('initial_date')
+                                        ->label('Data Inicial'),
+                                    DatePicker::make('final_date')
+                                        ->label('Data Final'),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull(),
+                        ])
+                        ->query(function (Builder $query, array $data): Builder {
+                            return $query
+                                ->when($data['initial_date'], fn($query, $initial_date) => $query->where('payment_date', '>=', $initial_date))
+                                ->when($data['final_date'], fn($query, $final_date) => $query->where('payment_date', '<=', $final_date));
+                        }),
+                    Filter::make('due_date')
+                        ->label('Data de Vencimento')
+                        ->form([
+                            Section::make('Data de Vencimento')
+                                ->schema([
+                                    DatePicker::make('initial_date')
+                                        ->label('Data Inicial'),
+                                    DatePicker::make('final_date')
+                                        ->label('Data Final'),
+                                ])
+                                ->columns(2)
+                                ->columnSpanFull(),
+                        ])
+                        ->query(callback: function (Builder $query, array $data): Builder {
+                            return $query
+                                ->when($data['initial_date'], fn($query, $initial_date) => $query->where('due_date', '>=', $initial_date))
+                                ->when($data['final_date'], fn($query, $final_date) => $query->where('due_date', '<=', $final_date));
+                        })
+                ],
+
+            )
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

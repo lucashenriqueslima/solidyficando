@@ -7,6 +7,7 @@ use App\Enums\EducationLevel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Person extends Model
 {
@@ -28,10 +29,13 @@ class Person extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function financialMovements(): BelongsToMany
+    public function financialMovements(): MorphMany
     {
-        return $this->belongsToMany(FinancialMovement::class, 'financial_movement_person')
-            ->withPivot('value')
-            ->withTimestamps();
+        return $this->morphMany(FinancialMovement::class, 'movementable');
+    }
+
+    public function projects(): MorphMany
+    {
+        return $this->morphMany(Project::class, 'projectable');
     }
 }

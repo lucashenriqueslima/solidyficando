@@ -14,6 +14,7 @@
         "laravellegends/pt-br-validator": "^11.0",
         "league/flysystem-aws-s3-v3": "^3.0",
         "leandrocfe/filament-ptbr-form-fields": "^3.0",
+        "parallax/filament-comments": "^1.5",
         "webbingbrasil/filament-copyactions": "^3.0"
     },
     "require-dev": {

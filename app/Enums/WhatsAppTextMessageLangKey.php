@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum WhatsAppTextMessageLangKey: string
 {
-    case MOUNTHLY_CHARGE = 'wpp-messages.monthly_charge';
-    case SINGLE_CHARGE = 'wpp-messages.single_charge';
+    private const string WHATSAPP_TEXT_MESSAGE_PREFIX = 'wpp-message.';
+    case MONTHLY_CHARGE = self::WHATSAPP_TEXT_MESSAGE_PREFIX . 'charge.monthly';
+    case SINGLE_CHARGE = self::WHATSAPP_TEXT_MESSAGE_PREFIX . 'charge.single';
 }

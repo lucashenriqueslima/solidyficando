@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class IndicatorsRelationManager extends RelationManager
 {
 
-    protected static ?string $title = 'Indicadores';
-    protected static ?string $modelLabel = 'Indicador';
+    protected static ?string $title = 'Padrinhos';
+    protected static ?string $modelLabel = 'Padrinho';
     protected static string $relationship = 'indicators';
 
     public function form(Form $form): Form
@@ -58,10 +58,8 @@ class IndicatorsRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label('Novo Indicador'),
+                Tables\Actions\CreateAction::make(),
                 Tables\Actions\AttachAction::make()
-                    ->label('Vincular Indicador')
                     ->preloadRecordSelect(),
             ])
             ->actions([

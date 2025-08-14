@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Enums\BillingType;
 use App\Enums\FinancialMovementFlowType;
 use App\Enums\FinancialMovementStatus;
+use App\Models\FinancialMovement;
 use App\Models\FinancialMovementCategory;
 use App\Models\Partiner;
 use App\Services\Asaas\AsaasApiService;
@@ -18,7 +19,7 @@ class HandleBillingGenerationAction
         FinancialMovementCategory $financialMovementCategory,
         ?float $value = null,
         ?Carbon $dueDate = null,
-    ): void {
+    ): FinancialMovement|null {
 
         $asaasApiService = new AsaasApiService();
 
@@ -39,7 +40,7 @@ class HandleBillingGenerationAction
             } else {
                 // Handle error if customer creation fails
                 Log::error('Failed to create customer in Asaas for partiner: ' . $partiner->name);
-                return;
+                return null;
             }
         }
 
@@ -52,10 +53,16 @@ class HandleBillingGenerationAction
 
         if (!$billing) {
             Log::error('Failed to create billing for partiner: ' . $partiner->name);
-            return;
+            return null;
         }
 
-        $partiner->financialMovements()->create([
+        Log::info("Billing created for partiner: {$partiner->name}", [
+            'billing_id' => $billing['id'],
+            'value' => $billing['value'],
+            'due_date' => $billing['dueDate'],
+        ]);
+
+        return $partiner->financialMovements()->create([
             'asaas_id' => $billing['id'],
             'value' => $billing['value'],
             'due_date' => $billing['dueDate'],
@@ -64,12 +71,6 @@ class HandleBillingGenerationAction
             'financial_movement_category_id' => $financialMovementCategory->id,
             'invoice_url' => $billing['invoiceUrl'] ?? null,
             'bank_slip_url' => $billing['bankSlipUrl'] ?? null,
-        ]);
-
-        Log::info("Billing created for partiner: {$partiner->name}", [
-            'billing_id' => $billing['id'],
-            'value' => $billing['value'],
-            'due_date' => $billing['dueDate'],
         ]);
     }
 }

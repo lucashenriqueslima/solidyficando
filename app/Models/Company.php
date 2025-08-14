@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Facades\Log;
 
 
@@ -60,6 +61,11 @@ class Company extends Authenticatable implements FilamentUser
     public function president(): HasOne
     {
         return $this->hasOne(President::class);
+    }
+
+    public function projects(): MorphMany
+    {
+        return $this->morphMany(Project::class, 'projectable');
     }
 
     public function indicators(): BelongsToMany
