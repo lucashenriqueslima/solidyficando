@@ -212,14 +212,12 @@ class FinancialMovementResource extends Resource
                         ->label('Entrada/Saída')
                         ->options(FinancialMovementFlowType::class)
                         ->multiple()
-                        ->preload()
-                        ->getOptionLabelFromRecordUsing(fn(FinancialMovementFlowType $record) => $record->getLabel(),),
+                        ->preload(),
                     SelectFilter::make('status')
                         ->label('Status')
                         ->options(FinancialMovementStatus::class)
                         ->multiple()
-                        ->preload()
-                        ->getOptionLabelFromRecordUsing(fn(FinancialMovementStatus $record) => $record->getLabel(),),
+                        ->preload(),
                     SelectFilter::make('financial_movement_category_id')
                         ->label('Categoria')
                         ->relationship(
@@ -235,12 +233,12 @@ class FinancialMovementResource extends Resource
                         ->label('Parceiro/Instituição')
                         ->relationship(
                             name: 'movementable',
-                            titleAttribute: 'id',
-                            modifyQueryUsing: fn(Builder $query) => $query->orderBy('id'),
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn(Builder $query) => $query->orderBy('name'),
                         )
                         ->preload()
                         ->multiple()
-                        ->getOptionLabelFromRecordUsing(fn($record) => $record->name),
+                        ->getOptionLabelFromRecordUsing(fn($record) => $record->name ?? 'Sem nome'),
                     Filter::make('payment_date')
                         ->label('Data de Pagamento')
                         ->form([
