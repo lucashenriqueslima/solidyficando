@@ -163,10 +163,6 @@ class FinancialMovementResource extends Resource
                     ->label('Categoria')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('company.name')
-                    ->label('Instituição')
-                    ->sortable()
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('payment_date')
                     ->label('Data Pagamento')
                     ->date()
