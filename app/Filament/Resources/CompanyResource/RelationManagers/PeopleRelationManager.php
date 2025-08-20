@@ -147,18 +147,18 @@ class PeopleRelationManager extends RelationManager
                 Tables\Columns\ImageColumn::make('image_path')
                     ->label('Foto de Perfil')
                     ->circular(),
-                Tables\Columns\TextColumn::make('financialMovements_sum_value')
-                    ->label('Valor Gasto')
-                    ->color('danger')
-                    ->money('BRL', locale: 'pt-BR')
-                    ->sortable()
-                    ->searchable()
-                    ->getStateUsing(function ($record) {
-                        return $record->financialMovements()
-                            ->selectRaw('SUM(financial_movement_person.value) as total')
-                            ->pluck('total')
-                            ->first() ?? 0;
-                    }),
+                // Tables\Columns\TextColumn::make('financialMovements_sum_value')
+                //     ->label('Valor Gasto')
+                //     ->color('danger')
+                //     ->money('BRL', locale: 'pt-BR')
+                //     ->sortable()
+                //     ->searchable()
+                //     ->getStateUsing(function ($record) {
+                //         return $record->financialMovements()
+                //             ->selectRaw('SUM(financial_movement_person.value) as total')
+                //             ->pluck('total')
+                //             ->first() ?? 0;
+                //     }),
             ])
             ->filters([
                 //

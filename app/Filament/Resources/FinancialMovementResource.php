@@ -9,25 +9,19 @@ use App\Models\Company;
 use App\Models\FinancialMovement;
 use App\Models\FinancialMovementCategory;
 use App\Models\Partiner;
-use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\Summarizers\Sum;
-use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Leandrocfe\FilamentPtbrFormFields\Money;
 
 class FinancialMovementResource extends Resource
@@ -127,7 +121,6 @@ class FinancialMovementResource extends Resource
 
     public static function table(Table $table): Table
     {
-
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('flow_type')
