@@ -28,7 +28,8 @@ class AsaasApiService
             ]);
 
             if (!$response->successful()) {
-                Log::error('Error fetching customers from Asaas: ' . $response->body());
+                $errorDescription = $response->json()['errors'][0]['description'] ?? 'Erro desconhecido';
+                Log::error('Error fetching customers from Asaas: ' . $errorDescription);
                 return null;
             }
 
@@ -55,15 +56,16 @@ class AsaasApiService
             ]);
 
             if (!$response->successful()) {
-                Log::error('Error creating customer in Asaas: ' . $response->body());
-                return null;
+                $errorDescription = $response->json()['errors'][0]['description'] ?? 'Erro desconhecido';
+                Log::error('Error creating customer in Asaas: ' . $errorDescription);
+                throw new \Exception('Erro ao criar cliente: ' . $errorDescription);
             }
 
             return $response->json();
         } catch (\Exception $e) {
             // Log the exception or handle it as needed
             Log::error('Error creating customer in Asaas: ' . $e->getMessage());
-            return null;
+            throw new \Exception('Erro ao criar cliente: ' . $e->getMessage());
         }
     }
 
@@ -83,8 +85,9 @@ class AsaasApiService
             ]);
 
             if (!$response->successful()) {
-                Log::error('Error creating billing in Asaas: ' . $response->body());
-                return null;
+                $errorDescription = $response->json()['errors'][0]['description'] ?? 'Erro desconhecido';
+                Log::error('Error creating billing in Asaas: ' . $errorDescription);
+                throw new \Exception('Erro ao criar cobrança: ' . $errorDescription);
             }
 
             return $response->json();
@@ -101,15 +104,16 @@ class AsaasApiService
             $response = $this->client->get("/payments/{$paymentId}/pixQrCode");
 
             if (!$response->successful()) {
-                Log::error('Error fetching Pix QR Code from Asaas: ' . $response->body());
-                return null;
+                $errorDescription = $response->json()['errors'][0]['description'] ?? 'Erro desconhecido';
+                Log::error('Error fetching Pix QR Code from Asaas: ' . $errorDescription);
+                throw new \Exception('Erro ao buscar QR Code Pix: ' . $errorDescription);
             }
 
             return $response->json();
         } catch (\Exception $e) {
             // Log the exception or handle it as needed
             Log::error('Error fetching Pix QR Code from Asaas: ' . $e->getMessage());
-            return null;
+            throw new \Exception('Erro ao buscar QR Code Pix: ' . $e->getMessage());
         }
     }
 }

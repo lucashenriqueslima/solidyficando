@@ -214,6 +214,8 @@ return [
         'mobile'    => 'celular',
         'month'     => 'mês',
         'name'      => 'nome',
+        'document'  => 'documento',
+        'amount'    => 'valor',
         'zipcode'   => 'cep',
         'company_name'   => 'razão social',
         'neighborhood' => 'bairro',

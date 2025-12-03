@@ -3,6 +3,10 @@
 namespace App\Livewire;
 
 use App\Enums\BillingType;
+use App\Enums\FinancialMovementFlowType;
+use App\Enums\FinancialMovementStatus;
+use App\Models\FinancialMovement;
+use App\Models\FinancialMovementCategory;
 use App\Services\Asaas\AsaasApiService;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -10,40 +14,42 @@ use Livewire\Component;
 class CreateDonation extends Component
 {
     #[Validate('required|in:cpf,cnpj')]
-    public $documentType = 'cpf';
+    public string $documentType = 'cpf';
 
     #[Validate('required|min:3|max:255')]
-    public $name = '';
+    public string $name = '';
 
     #[Validate('required|string')]
-    public $document = '';
+    public string $document = '';
 
     #[Validate('required|numeric|min:1')]
     public $amount = '';
 
+    public string $financialMovementCategoryId;
+
     public $pixQrCode = null;
     public $pixPayload = null;
     public $isLoading = false;
+
+    public function mount()
+    {
+        $this->financialMovementCategoryId = FinancialMovementCategory::where('name', 'Contribuição Avulsa (PIX)')
+            ->where('flow_type', 'in')
+            ->value('id');
+    }
 
     public function submit()
     {
         $this->validate();
         $this->isLoading = true;
 
-        // dd($this->documentType, $this->document, $this->name, $this->amount);
-
         $asaasService = new AsaasApiService();
+
         try {
             $customer = $asaasService->createCustomer(
                 name: $this->name,
                 cpfCnpj: $this->document,
             );
-
-            if (!$customer) {
-                session()->flash('error', 'Erro ao criar cliente. Tente novamente.');
-                $this->isLoading = false;
-                return;
-            }
 
             $billing = $asaasService->createBilling(
                 customerId: $customer['id'],
@@ -51,12 +57,6 @@ class CreateDonation extends Component
                 value: $this->amount,
                 dueDate: now()->addDay(),
             );
-
-            if (!$billing) {
-                session()->flash('error', 'Erro ao gerar cobrança. Tente novamente.');
-                $this->isLoading = false;
-                return;
-            }
 
             $pixQrCodeData = $asaasService->getPixQrCode($billing['id']);
 
@@ -69,8 +69,19 @@ class CreateDonation extends Component
             $this->pixQrCode = $pixQrCodeData['encodedImage'];
             $this->pixPayload = $pixQrCodeData['payload'] ?? null;
             $this->isLoading = false;
+
+            $financialMovement = new FinancialMovement;
+
+            $financialMovement->asaas_id = $billing['id'];
+            $financialMovement->value = $this->amount;
+            $financialMovement->description = "Doação de {$this->name} ({$this->document}) no valor de R$ {$this->amount}";
+            $financialMovement->financial_movement_category_id = $this->financialMovementCategoryId;
+            $financialMovement->flow_type = FinancialMovementFlowType::IN;
+            $financialMovement->status = FinancialMovementStatus::PENDING;
+            $financialMovement->due_date = now()->addDay();
+            $financialMovement->save();
         } catch (\Exception $e) {
-            session()->flash('error', 'Erro ao processar doação: ' . $e->getMessage());
+            session()->flash('error', $e->getMessage());
             $this->isLoading = false;
             return;
         }
