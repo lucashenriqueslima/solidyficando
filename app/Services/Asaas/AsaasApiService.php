@@ -43,8 +43,8 @@ class AsaasApiService
     public function createCustomer(
         string $name,
         string $cpfCnpj,
-        string $email,
-        string $phone,
+        ?string $email = null,
+        ?string $phone = null,
     ) {
         try {
             $response = $this->client->post('/customers', [
@@ -91,6 +91,24 @@ class AsaasApiService
         } catch (\Exception $e) {
             // Log the exception or handle it as needed
             Log::error('Error creating billing in Asaas: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getPixQrCode(string $paymentId)
+    {
+        try {
+            $response = $this->client->get("/payments/{$paymentId}/pixQrCode");
+
+            if (!$response->successful()) {
+                Log::error('Error fetching Pix QR Code from Asaas: ' . $response->body());
+                return null;
+            }
+
+            return $response->json();
+        } catch (\Exception $e) {
+            // Log the exception or handle it as needed
+            Log::error('Error fetching Pix QR Code from Asaas: ' . $e->getMessage());
             return null;
         }
     }
