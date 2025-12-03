@@ -25,11 +25,15 @@ class CreateDonation extends Component
     #[Validate('required|numeric|min:1')]
     public $amount = '';
 
+    public FinancialMovement $financialMovement;
+
     public string $financialMovementCategoryId;
 
     public $pixQrCode = null;
     public $pixPayload = null;
     public $isLoading = false;
+    public $qrCodeExpiresAt = null;
+    public $showPaymentSuccessModal = false;
 
     public function mount()
     {
@@ -60,31 +64,59 @@ class CreateDonation extends Component
 
             $pixQrCodeData = $asaasService->getPixQrCode($billing['id']);
 
-            if (!$pixQrCodeData) {
-                session()->flash('error', 'Erro ao gerar QR Code. Tente novamente.');
-                $this->isLoading = false;
-                return;
-            }
-
             $this->pixQrCode = $pixQrCodeData['encodedImage'];
             $this->pixPayload = $pixQrCodeData['payload'] ?? null;
+            $this->qrCodeExpiresAt = now()->addMinutes(7)->toImmutable();
             $this->isLoading = false;
 
-            $financialMovement = new FinancialMovement;
+            $this->financialMovement = new FinancialMovement;
 
-            $financialMovement->asaas_id = $billing['id'];
-            $financialMovement->value = $this->amount;
-            $financialMovement->description = "Doação de {$this->name} ({$this->document}) no valor de R$ {$this->amount}";
-            $financialMovement->financial_movement_category_id = $this->financialMovementCategoryId;
-            $financialMovement->flow_type = FinancialMovementFlowType::IN;
-            $financialMovement->status = FinancialMovementStatus::PENDING;
-            $financialMovement->due_date = now()->addDay();
-            $financialMovement->save();
+            $this->financialMovement->asaas_id = $billing['id'];
+            $this->financialMovement->value = $this->amount;
+            $this->financialMovement->description = "Doação de {$this->name} ({$this->document}) no valor de R$ {$this->amount}";
+            $this->financialMovement->financial_movement_category_id = $this->financialMovementCategoryId;
+            $this->financialMovement->flow_type = FinancialMovementFlowType::IN;
+            $this->financialMovement->status = FinancialMovementStatus::PENDING;
+            $this->financialMovement->due_date = now()->addDay();
+            $this->financialMovement->save();
         } catch (\Exception $e) {
             session()->flash('error', $e->getMessage());
             $this->isLoading = false;
             return;
         }
+    }
+
+    public function refreshFinancialMovement()
+    {
+        $this->financialMovement->refresh();
+
+        // Verifica se o pagamento foi confirmado
+        if ($this->financialMovement->status === FinancialMovementStatus::PAID) {
+            $this->showPaymentSuccessModal = true;
+        }
+    }
+
+    public function checkExpiration()
+    {
+        if ($this->qrCodeExpiresAt && now()->greaterThan($this->qrCodeExpiresAt)) {
+            $this->reset(['pixQrCode', 'pixPayload', 'qrCodeExpiresAt']);
+            session()->flash('error', 'O QR Code do PIX expirou. Por favor, gere um novo código.');
+            return true;
+        }
+        return false;
+    }
+
+    public function expireQrCode()
+    {
+        $this->reset(['pixQrCode', 'pixPayload', 'qrCodeExpiresAt']);
+        session()->flash('error', 'O QR Code do PIX expirou. Por favor, gere um novo código.');
+        return true;
+    }
+
+    public function resetForm()
+    {
+        $this->reset();
+        $this->mount();
     }
 
     public function render()

@@ -58,8 +58,82 @@
 
                 @if($pixQrCode)
                     <!-- QR Code do Pix -->
-                    <div class="mb-8 text-center animate-fade-in">
+                    <div
+                        class="mb-8 text-center animate-fade-in"
+                        x-data="{
+                            // Calcula no cliente para iniciar em 7:00 com precisão
+                            timeRemaining: (function() {
+                                const iso = '{{ $qrCodeExpiresAt ? $qrCodeExpiresAt->toIso8601String() : '' }}';
+                                if (iso) {
+                                    const expiresMs = new Date(iso).getTime();
+                                    const diffSecs = Math.floor((expiresMs - Date.now()) / 1000);
+                                    return Math.max(0, diffSecs);
+                                }
+                                return 420;
+                            })(),
+                            statusPollingInterval: null,
+                            expirationInterval: null,
+                            init() {
+                                // Garante que o tempo é positivo
+                                if (this.timeRemaining < 0) {
+                                    this.timeRemaining = 0;
+                                }
+
+                                // Verifica se já expirou
+                                if (this.timeRemaining <= 0) {
+                                    $wire.checkExpiration();
+                                    return;
+                                }
+
+                                // Atualiza o status a cada 7 segundos
+                                this.statusPollingInterval = setInterval(() => {
+                                    $wire.refreshFinancialMovement();
+                                }, 7000);
+
+                                // Atualiza o cronômetro a cada segundo
+                                this.expirationInterval = setInterval(() => {
+                                    this.timeRemaining--;
+                                    if (this.timeRemaining <= 0) {
+                                        this.timeRemaining = 0;
+                                        clearInterval(this.statusPollingInterval);
+                                        clearInterval(this.expirationInterval);
+                                        // Força expiração imediata para evitar divergência de relógio
+                                        $wire.expireQrCode();
+                                        // Opcional: rolar para o topo para destacar a mensagem
+                                        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+                                    }
+                                }, 1000);
+                            },
+                            formatTime(seconds) {
+                                const s = Math.max(0, parseInt(seconds));
+                                const minutes = Math.floor(s / 60);
+                                const secs = s % 60;
+                                return `${minutes}:${String(secs).padStart(2, '0')}`;
+                            },
+                            getTimerColor(seconds) {
+                                if (seconds > 240) return 'text-green-600';
+                                if (seconds > 120) return 'text-yellow-600';
+                                return 'text-red-600';
+                            }
+                        }"
+                        wire:poll.7s="refreshFinancialMovement"
+                    >
                         <div class="bg-gradient-to-br from-emerald-50 to-amber-50 rounded-2xl p-8 mb-4">
+                            <!-- Cronômetro -->
+                            <div class="mb-4 flex justify-center">
+                                <div class="bg-white rounded-xl shadow-lg px-6 py-3 inline-flex items-center space-x-2">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-600">Expira em:</span>
+                                    <span
+                                        x-text="formatTime(timeRemaining)"
+                                        :class="getTimerColor(timeRemaining)"
+                                        class="text-2xl font-bold tabular-nums"
+                                    ></span>
+                                </div>
+                            </div>
+
                             <h3 class="text-2xl font-bold text-gray-800 mb-4">
                                 QR Code gerado com sucesso! 🎉
                             </h3>
@@ -69,6 +143,24 @@
 
                             <div class="bg-white p-6 rounded-xl inline-block shadow-lg">
                                 <img src="data:image/png;base64,{{ $pixQrCode }}" alt="QR Code Pix" class="w-64 h-64 mx-auto">
+                            </div>
+
+                            <!-- Status do Pagamento -->
+                            <div class="mt-6">
+                                <div class="bg-white rounded-xl shadow-md px-6 py-4 inline-flex items-center space-x-3">
+                                    <div class="flex items-center space-x-2">
+                                        <svg class="w-5 h-5 {{ $financialMovement->status->getColor() === 'success' ? 'text-green-600' : ($financialMovement->status->getColor() === 'warning' ? 'text-yellow-600' : 'text-red-600') }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium text-gray-600">Status:</span>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-sm font-semibold
+                                        {{ $financialMovement->status->getColor() === 'success' ? 'bg-green-100 text-green-800' :
+                                           ($financialMovement->status->getColor() === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                                           'bg-red-100 text-red-800') }}">
+                                        {{ $financialMovement->status->getLabel() }}
+                                    </span>
+                                </div>
                             </div>
 
                             @if($pixPayload)
@@ -384,6 +476,84 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de Pagamento Confirmado -->
+    @if($showPaymentSuccessModal)
+        <div
+            class="fixed inset-0 z-50 overflow-y-auto"
+            x-data="{ show: true }"
+            x-show="show"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+        >
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Overlay -->
+                <div class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" @click="show = false; $wire.resetForm()"></div>
+
+                <!-- Modal -->
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full bg-green-100 sm:mx-0 sm:h-16 sm:w-16">
+                                <svg class="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left flex-1">
+                                <h3 class="text-2xl leading-6 font-bold text-gray-900 mb-2">
+                                    Pagamento Confirmado! 🎉
+                                </h3>
+                                <div class="mt-4">
+                                    <p class="text-base text-gray-700 mb-2">
+                                        Sua doação foi registrada com sucesso!
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        Muito obrigado por contribuir com o projeto Solidyficando Vidas. Sua generosidade faz toda a diferença!
+                                    </p>
+                                </div>
+
+                                <div class="mt-6 bg-white rounded-xl p-4 border-2 border-green-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-sm font-medium text-gray-600">Valor da doação:</span>
+                                        <span class="text-lg font-bold text-green-600">
+                                            R$ {{ number_format($financialMovement->value, 2, ',', '.') }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm font-medium text-gray-600">Status:</span>
+                                        <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                                            {{ $financialMovement->status->getLabel() }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button
+                            type="button"
+                            wire:click="resetForm"
+                            @click="show = false"
+                            class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-base font-medium text-white hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm transition-all duration-200"
+                        >
+                            Fazer nova doação
+                        </button>
+                        <button
+                            type="button"
+                            @click="show = false; $wire.resetForm()"
+                            class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-6 py-3 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:mt-0 sm:w-auto sm:text-sm transition-all duration-200"
+                        >
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <style>
         @keyframes fade-in {
