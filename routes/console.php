@@ -5,7 +5,10 @@ use App\Console\Commands\UpdateFinancialMovementStatusToOverdueCommand;
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command(HandleBillingGenerationCommand::class)
-    ->dailyAt('12:00');
+    ->hourly();
 
 Schedule::command(UpdateFinancialMovementStatusToOverdueCommand::class)
-    ->dailyAt('01:00');
+    ->twiceDaily(
+        1,
+        13
+    );
