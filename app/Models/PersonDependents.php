@@ -12,6 +12,11 @@ class PersonDependents extends Model
 
     protected $guarded = [];
 
+    //casts
+    protected $casts = [
+        'date_of_birth' => 'date',
+    ];
+
     public function person(): BelongsTo
     {
         return $this->belongsTo(Person::class);

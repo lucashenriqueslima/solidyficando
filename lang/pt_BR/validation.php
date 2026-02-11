@@ -24,7 +24,7 @@ return [
     'array'                => 'O campo :attribute deve ser uma matriz.',
     'ascii'                => 'O campo :attribute deve conter somente caracteres alfanuméricos.',
     'before'               => 'O campo :attribute deve ser uma data anterior :date.',
-    'before_or_equal'      => 'O campo :attribute deve ser uma data anterior ou igual a :date.',
+    'before_or_equal'      => 'O campo :attribute deve ser uma data anterior ou igual a hoje.',
     'between'              => [
         'numeric' => 'O campo :attribute deve ser entre :min e :max.',
         'file'    => 'O campo :attribute deve ser entre :min e :max kilobytes.',
@@ -241,6 +241,7 @@ return [
         'blood_type' => 'tipo sanguíneo',
         'birth_date' => 'data de nascimento',
         'comment' => 'comentários',
+        'today' => 'hoje',
     ],
 
 ];

@@ -152,6 +152,9 @@ class FinancialMovementResource extends Resource
                             ->money('BRL', locale: 'pt-BR')
                             ->query(fn($query) => $query->where('status', FinancialMovementStatus::PENDING)),
                     ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('financialMovementCategory.name')
                     ->label('Categoria')
                     ->sortable()
@@ -173,11 +176,6 @@ class FinancialMovementResource extends Resource
                     ->label('Link de Boleto')
                     ->url(fn(FinancialMovement $record): ?string => $record->bank_slip_url, true),
 
-
-
-                Tables\Columns\TextColumn::make('status')
-                    ->sortable()
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('description')
                     ->label('Descrição')
                     ->searchable()

@@ -11,13 +11,22 @@ use App\Filament\Resources\PersonResource\RelationManagers\FinancialMovementsRel
 use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Resources\Components\Tab;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Carbon;
 use Leandrocfe\FilamentPtbrFormFields\Money;
 
 class PersonResource extends Resource
@@ -59,6 +68,7 @@ class PersonResource extends Resource
                             Forms\Components\DatePicker::make('birthday')
                                 ->label('Data de Nascimento')
                                 ->date()
+                                ->rule('before:today')
                                 ->required(),
                             Money::make('family_income')
                                 ->label('Renda Mensal Familiar')
@@ -70,11 +80,39 @@ class PersonResource extends Resource
                             Forms\Components\Select::make('housing')
                                 ->label('Moradia')
                                 ->options(Housing::class)
+                                ->columnSpanFull()
                                 ->required(),
-                            Forms\Components\TextInput::make('children')
-                                ->label('Quantidade de Filhos')
-                                ->numeric()
-                                ->required(),
+                            // Forms\Components\TextInput::make('children')
+                            //     ->label('Quantidade de Filhos')
+                            //     ->numeric()
+                            //     ->required(),
+
+                            Repeater::make('dependents')
+                                ->label('Crianças Dependentes')
+                                ->relationship()
+                                ->schema([
+                                    Forms\Components\TextInput::make('name')
+                                        ->label('Nome')
+                                        ->required()
+                                        ->live()
+                                        ->maxLength(255),
+                                    Forms\Components\TextInput::make('cpf')
+                                        ->label('CPF')
+                                        ->required()
+                                        ->mask('999.999.999-99')
+                                        ->rule('cpf')
+                                        ->maxLength(255),
+                                    Forms\Components\DatePicker::make('date_of_birth')
+                                        ->label('Data de Nascimento')
+                                        ->date()
+                                        ->rule('before_or_equal:today')
+                                        ->required(),
+                                ])
+                                ->addActionLabel('Vincular mais uma criança dependente')
+                                ->collapsible()
+                                ->grid(2)
+                                ->itemLabel(fn($state) => $state['name'] ?? 'Dependente')
+                                ->columnSpanFull(),
 
                         ]
                     ),
@@ -150,6 +188,26 @@ class PersonResource extends Resource
                 Tables\Columns\TextColumn::make('cpf')
                     ->label('CPF')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('Telefone')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('dependents_count')->counts('dependents')
+                    ->label('Dependentes')
+                    ->alignCenter()
+                    ->limit(10)
+                    ->html()
+                    ->extraAttributes(fn(Model $record): array => [
+                        'x-tooltip.html' => new HtmlString(),
+                        'x-tooltip.raw' => new HtmlString(implode('<br><br>', $record->dependents->map(function ($dependent) {
+                            $dependentFistName = str($dependent->name)->before(' ');
+                            return "Nome: {$dependentFistName} | Idade: {$dependent->date_of_birth->age} anos";
+                        })->toArray())),
+                    ]),
+
+                Tables\Columns\TextColumn::make('family_income')
+                    ->label('Renda Mensal Familiar')
+                    ->money('BRL')
+                    ->sortable(),
                 Tables\Columns\ImageColumn::make('image_path')
                     ->label('Foto de Perfil')
                     ->circular(),
@@ -166,7 +224,56 @@ class PersonResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Filter::make('dependents_older_than')
+                    ->label('Dependentes com idade mínima')
+                    ->form([
+                        Forms\Components\TextInput::make('age')
+                            ->label('Idade mínima dependente (anos)')
+                            ->numeric()
+                            ->minValue(0),
+                    ])
+                    ->indicateUsing(
+                        fn(array $data): ?string => filled($data['age'])
+                            ? "Dependentes com ≥ {$data['age']} anos"
+                            : null,
+                    )
+                    ->query(function (Builder $query, array $data): Builder {
+                        $age = $data['age'] ?? null;
+
+                        if (! filled($age)) {
+                            return $query;
+                        }
+
+                        $cutoffDate = Carbon::now()->subYears((int) $age)->endOfDay();
+
+                        return $query->whereHas('dependents', fn(Builder $dependentQuery) => $dependentQuery
+                            ->where('date_of_birth', '<=', $cutoffDate));
+                    }),
+                Filter::make('dependents_younger_than')
+                    ->label('Dependentes com idade máxima')
+                    ->form([
+                        Forms\Components\TextInput::make('age')
+                            ->label('Idade máxima dependente (anos)')
+                            ->numeric()
+                            ->minValue(0),
+                    ])
+                    ->indicateUsing(
+                        fn(array $data): ?string => filled($data['age'])
+                            ? "Dependentes com ≤ {$data['age']} anos"
+                            : null,
+                    )
+                    ->query(function (Builder $query, array $data): Builder {
+                        $age = $data['age'] ?? null;
+
+                        if (! filled($age)) {
+                            return $query;
+                        }
+
+                        $cutoffDate = Carbon::now()->subYears((int) $age)->startOfDay();
+
+                        return $query->whereHas('dependents', fn(Builder $dependentQuery) => $dependentQuery
+                            ->where('date_of_birth', '>=', $cutoffDate));
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

@@ -10,6 +10,7 @@ use App\Filament\App\Resources\PersonResource\RelationManagers;
 use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\Resource;
@@ -17,8 +18,10 @@ use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 use Leandrocfe\FilamentPtbrFormFields\Money;
 
 class PersonResource extends Resource
@@ -27,7 +30,7 @@ class PersonResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $modelLabel = 'Assistidos';
+    protected static ?string $modelLabel = 'Assistido';
 
     public static function getEloquentQuery(): Builder
     {
@@ -71,12 +74,36 @@ class PersonResource extends Resource
                                 ->required(),
                             Forms\Components\Select::make('housing')
                                 ->label('Moradia')
+                                ->columnSpanFull()
                                 ->options(Housing::class)
                                 ->required(),
-                            Forms\Components\TextInput::make('children')
-                                ->label('Quantidade de Filhos')
-                                ->numeric()
-                                ->required(),
+                            Repeater::make('dependents')
+                                ->label('Crianças Dependentes')
+                                ->relationship()
+                                ->schema([
+                                    Forms\Components\TextInput::make('name')
+                                        ->label('Nome')
+                                        ->required()
+                                        ->live()
+                                        ->maxLength(255),
+                                    Forms\Components\TextInput::make('cpf')
+                                        ->label('CPF')
+                                        ->required()
+                                        ->mask('999.999.999-99')
+                                        ->rule('cpf')
+                                        ->maxLength(255),
+                                    Forms\Components\DatePicker::make('date_of_birth')
+                                        ->label('Data de Nascimento')
+                                        ->date()
+                                        ->required()
+                                        ->rule('before_or_equal:today'),
+                                ])
+                                ->addActionLabel('Vincular mais uma criança dependente')
+                                ->collapsible()
+                                ->grid(2)
+                                ->itemLabel(fn($state) => $state['name'] ?? 'Dependente')
+
+                                ->columnSpanFull(),
 
                         ]
                     ),
@@ -156,6 +183,18 @@ class PersonResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Telefone')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('dependents_count')->counts('dependents')
+                    ->label('Dependentes')
+                    ->alignCenter()
+                    ->limit(10)
+                    ->html()
+                    ->extraAttributes(fn(Model $record): array => [
+                        'x-tooltip.html' => new HtmlString(),
+                        'x-tooltip.raw' => new HtmlString(implode('<br><br>', $record->dependents->map(function ($dependent) {
+                            $dependentFistName = str($dependent->name)->before(' ');
+                            return "Nome: {$dependentFistName} | Idade: {$dependent->date_of_birth->age} anos";
+                        })->toArray())),
+                    ]),
                 ImageColumn::make('image_path')
                     ->label('Foto de Perfil')
                     ->circular(),
