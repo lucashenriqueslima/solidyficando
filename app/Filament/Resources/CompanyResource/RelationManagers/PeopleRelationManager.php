@@ -9,6 +9,7 @@ use App\Enums\PixKeyType;
 use App\Models\Person;
 use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -70,10 +71,36 @@ class PeopleRelationManager extends RelationManager
                                 ->label('Moradia')
                                 ->options(Housing::class)
                                 ->required(),
-                            Forms\Components\TextInput::make('children')
-                                ->label('Quantidade de Filhos')
-                                ->numeric()
-                                ->required(),
+                            // Forms\Components\TextInput::make('children')
+                            //     ->label('Quantidade de Filhos')
+                            //     ->numeric()
+                            //     ->required(),
+                            Repeater::make('dependents')
+                                ->label('Crianças Dependentes')
+                                ->relationship()
+                                ->schema([
+                                    Forms\Components\TextInput::make('name')
+                                        ->label('Nome')
+                                        ->required()
+                                        ->live()
+                                        ->maxLength(255),
+                                    Forms\Components\TextInput::make('cpf')
+                                        ->label('CPF')
+                                        ->required()
+                                        ->mask('999.999.999-99')
+                                        ->rule('cpf')
+                                        ->maxLength(255),
+                                    Forms\Components\DatePicker::make('date_of_birth')
+                                        ->label('Data de Nascimento')
+                                        ->date()
+                                        ->rule('before_or_equal:today')
+                                        ->required(),
+                                ])
+                                ->addActionLabel('Vincular mais uma criança dependente')
+                                ->collapsible()
+                                ->grid(2)
+                                ->itemLabel(fn($state) => $state['name'] ?? 'Dependente')
+                                ->columnSpanFull(),
 
                         ]
                     ),
